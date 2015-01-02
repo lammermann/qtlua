@@ -66,7 +66,7 @@ namespace QtLua {
   }
 
   template <class T>
-  Value ArrayProxyRo<T>::meta_index(State &ls, const Value &key)
+  Value ArrayProxyRo<T>::meta_index(State *ls, const Value &key)
   { 
     if (!_array)
       return Value(ls);
@@ -80,7 +80,7 @@ namespace QtLua {
   }
 
   template <class T>
-  bool ArrayProxyRo<T>::meta_contains(State &ls, const Value &key)
+  bool ArrayProxyRo<T>::meta_contains(State *ls, const Value &key)
   {
     try {
       unsigned int index = (unsigned int)key.to_number() - 1;
@@ -92,7 +92,7 @@ namespace QtLua {
   }
 
   template <class T>
-  Value ArrayProxyRo<T>::meta_operation(State &ls, Value::Operation op, const Value &a, const Value &b)
+  Value ArrayProxyRo<T>::meta_operation(State *ls, Value::Operation op, const Value &a, const Value &b)
   {
     switch (op)
       {
@@ -143,26 +143,26 @@ namespace QtLua {
   }
 
   template <class T>
-  void ArrayProxy<T>::meta_newindex(State &ls, const Value &key, const Value &value)
+  void ArrayProxy<T>::meta_newindex(State *ls, const Value &key, const Value &value)
   {
     if (!_array)
-      throw String("Can not write to null array.");
+      QTLUA_THROW(QtLua::ArrayProxy, "Can not index a null array.");
 
     unsigned int index = (unsigned int)key.to_number() - 1;
 
     if (index >= _size)
-      throw String("Array index is out of bounds.");
+      QTLUA_THROW(QtLua::ArrayProxy, "Array index `%' is out of bounds.", .arg(index));
 
     const_cast<T*>(_array)[index] = value;
   }
 
   template <class T>
-  Ref<Iterator> ArrayProxyRo<T>::new_iterator(State &ls)
+  Ref<Iterator> ArrayProxyRo<T>::new_iterator(State *ls)
   {
     if (!_array)
-      throw String("Can not iterate on null array.");
+      QTLUA_THROW(QtLua::ArrayProxy, "Can not iterate on a null array.");
 
-    return QTLUA_REFNEW(ProxyIterator, &ls, *this);
+    return QTLUA_REFNEW(ProxyIterator, ls, *this);
   }
 
   template <class T>
@@ -201,6 +201,13 @@ namespace QtLua {
   ValueRef ArrayProxyRo<T>::ProxyIterator::get_value_ref()
   {
     return ValueRef(Value(_ls, _proxy), Value(_ls, (double)_it + 1));
+  }
+
+  template <class T>
+  void ArrayProxyRo<T>::completion_patch(String &path, String &entry, int &offset)
+  {
+    entry += "[]";
+    offset--;
   }
 
 }

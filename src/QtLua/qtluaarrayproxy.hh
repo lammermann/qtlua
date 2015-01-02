@@ -54,14 +54,14 @@ public:
   /** Attach or detach container. argument may be NULL */
   void set_container(const T *array, unsigned int size);
 
-  Value meta_operation(State &ls, Value::Operation op, const Value &a, const Value &b);
-  Value meta_index(State &ls, const Value &key);
-  bool meta_contains(State &ls, const Value &key);
-  Ref<Iterator> new_iterator(State &ls);
+  Value meta_operation(State *ls, Value::Operation op, const Value &a, const Value &b);
+  Value meta_index(State *ls, const Value &key);
+  bool meta_contains(State *ls, const Value &key);
+  Ref<Iterator> new_iterator(State *ls);
   bool support(Value::Operation c) const;
 
 private:
-
+  void completion_patch(String &path, String &entry, int &offset);
   String get_type_name() const;
 
   /**
@@ -82,7 +82,7 @@ private:
     ValueRef get_value_ref();
 
     QPointer<State> _ls;
-    typename ArrayProxyRo::ptr _proxy;
+    Ref<ArrayProxyRo> _proxy;
     unsigned int _it;
   };
 
@@ -134,7 +134,7 @@ public:
   /** Attach or detach associated array. argument may be NULL */
   void set_container(T *array, unsigned int size);
 
-  void meta_newindex(State &ls, const Value &key, const Value &value);
+  void meta_newindex(State *ls, const Value &key, const Value &value);
   bool support(enum Value::Operation c);
 };
 

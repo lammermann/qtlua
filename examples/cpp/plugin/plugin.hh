@@ -4,17 +4,18 @@
 
 /* anchor 1 */
 #include <QObject>
-#include <QtLua/PluginInterface>
+#include <QtLua/Plugin>
 
 class ExamplePlugin : public QObject, public QtLua::PluginInterface
 {
   Q_OBJECT
   Q_INTERFACES(QtLua::PluginInterface)
+#if QT_VERSION >= 0x050000
+  Q_PLUGIN_METADATA(IID "qtlua.ExamplePlugin")
+#endif
 
 public:
 
-  const QtLua::String & get_name() const;
-  const QtLua::String & get_description() const;
   void register_members(QtLua::Plugin &plugin);
 };
 /* anchor end */

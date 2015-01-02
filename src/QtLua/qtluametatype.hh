@@ -59,17 +59,19 @@ namespace QtLua {
    * @example examples/cpp/types/myobject.hh:3
    *
    * The following code shows how to write conversion handler class
-   * to handle the @tt Mystruct C++ type as a Lua table value:
+   * to handle the @tt Mystruct C++ type as a table value on the lua side:
    *
    * @example examples/cpp/types/myobject.hh:1
-   * The conversion handler and Qt meta type will be registered on class instantiation:
+   *
+   * The conversion handler and the Qt meta type will be registered on
+   * class instantiation:
+   *
    * @example examples/cpp/types/meta.cc:1
    *
    * Moreover, a template class with builtin conversion functions is
    * available to readily handle @ref QObject pointer cases:
    *
    * @example examples/cpp/types/myobject.hh:2
-   * @ref QObject pointer converter class instantiation:
    * @example examples/cpp/types/meta.cc:2
    *
    * @see qRegisterMetaType @see #QTLUA_METATYPE
@@ -78,7 +80,7 @@ namespace QtLua {
   template <typename X>
   class MetaType
   {
-    friend class Member;
+    friend class QMetaValue;
 
   protected:
     /** Register a conversion handler for an already registered Qt
@@ -94,7 +96,7 @@ namespace QtLua {
 
     /** This function must be implemented to converts a C++ value to a
 	lua value. */
-    virtual Value qt2lua(State &ls, const X *qtvalue) = 0;
+    virtual Value qt2lua(State *ls, const X *qtvalue) = 0;
 
     /** This function must be implemented to converts a lua value to a
 	C++ value.  @return true on success. */
@@ -110,7 +112,7 @@ namespace QtLua {
       name()							\
 	: QtLua::MetaType<typename_>(#typename_) {}		\
 								\
-      inline QtLua::Value qt2lua(QtLua::State &ls,		\
+      inline QtLua::Value qt2lua(QtLua::State *ls,		\
 				 typename_ const * qtvalue);	\
       inline bool lua2qt(typename_ *qtvalue,			\
 			 const QtLua::Value &luavalue);		\
@@ -125,7 +127,7 @@ namespace QtLua {
       name()							\
 	: QtLua::MetaType<typename_>((int)typeid_) {}		\
 								\
-      inline QtLua::Value qt2lua(QtLua::State &ls,		\
+      inline QtLua::Value qt2lua(QtLua::State *ls,		\
 				 typename_ const * qtvalue);	\
       inline bool lua2qt(typename_ *qtvalue,			\
 			 const QtLua::Value &luavalue);		\
@@ -158,7 +160,7 @@ namespace QtLua {
     }
 
   private:
-    inline QtLua::Value qt2lua(QtLua::State &ls, X* const * qtvalue);
+    inline QtLua::Value qt2lua(QtLua::State *ls, X* const * qtvalue);
     inline bool lua2qt(X** qtvalue, const QtLua::Value &luavalue);
   };
 

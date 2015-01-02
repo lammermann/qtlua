@@ -32,6 +32,7 @@ class MainWindow : public QMainWindow
 
 public:
   MainWindow();
+  ~MainWindow();
 
 private:
   QtLua::State *state;

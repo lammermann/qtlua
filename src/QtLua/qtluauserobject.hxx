@@ -45,25 +45,25 @@ namespace QtLua {
     for (size_t i = 0; T::_qtlua_properties_table[i].name; i++)
       if (name == T::_qtlua_properties_table[i].name)
 	return i;
-      throw String("No such property `%::%'")
-	.arg(UserData::type_name<T>()).arg(name);
+    QTLUA_THROW(QtLua::UserObject, "No such property `%::%'.",
+		.arg(UserData::type_name<T>()).arg(name));
   }
 
   template <class T>
-  Value UserObject<T>::meta_index(State &ls, const Value &key)
+  Value UserObject<T>::meta_index(State *ls, const Value &key)
   {
     String name = key.to_string();
     int index = get_entry(name);
 
     if (!T::_qtlua_properties_table[index].get)
-      throw String("The `%::%' property is write only")
-	.arg(UserData::type_name<T>()).arg(name);
+      QTLUA_THROW(QtLua::UserObject, "The `%::%' property is write only.",
+		  .arg(UserData::type_name<T>()).arg(name));
 
     return (_obj->*T::_qtlua_properties_table[index].get)(ls);
   }
 
   template <class T>
-  bool UserObject<T>::meta_contains(State &ls, const Value &key)
+  bool UserObject<T>::meta_contains(State *ls, const Value &key)
   {
     try {
       get_entry(key.to_string());
@@ -74,23 +74,23 @@ namespace QtLua {
   }
 
   template <class T>
-  void UserObject<T>::meta_newindex(State &ls, const Value &key, const Value &value)
+  void UserObject<T>::meta_newindex(State *ls, const Value &key, const Value &value)
   {
     String name = key.to_string();
     int index = get_entry(name);
 
     if (!T::_qtlua_properties_table[index].set)
-      throw String("The `%::%' property is read only")
-	.arg(UserData::type_name<T>())
-	.arg(T::_qtlua_properties_table[index].name);
-
+      QTLUA_THROW(QtLua::UserObject, "The `%::%' property is read only.",
+		  .arg(UserData::type_name<T>())
+		  .arg(T::_qtlua_properties_table[index].name));
+    
     (_obj->*T::_qtlua_properties_table[index].set)(ls, value);
   }
 
   template <class T>
-  Ref<Iterator> UserObject<T>::new_iterator(State &ls)
+  Ref<Iterator> UserObject<T>::new_iterator(State *ls)
   {
-    return QTLUA_REFNEW(UserObjectIterator, &ls, *this);
+    return QTLUA_REFNEW(UserObjectIterator, ls, *this);
   }
 
   template <class T>
@@ -143,13 +143,13 @@ namespace QtLua {
   Value UserObject<T>::UserObjectIterator::get_value() const
   {
     if (!T::_qtlua_properties_table[_index].get)
-      throw String("The `%::%' property is write only")
-	.arg(UserData::type_name<T>()).arg(T::_qtlua_properties_table[_index].name);
+      QTLUA_THROW(QtLua::UserObject, "The `%::%' property is write only.",
+		  .arg(UserData::type_name<T>()).arg(T::_qtlua_properties_table[_index].name));
 
     if (!_ls)
       return QtLua::Value(_ls);
 
-    return (_obj->_obj->*T::_qtlua_properties_table[_index].get)(*_ls);
+    return (_obj->_obj->*T::_qtlua_properties_table[_index].get)(_ls);
   }
 
   template <class T>

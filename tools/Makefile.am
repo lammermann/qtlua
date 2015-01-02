@@ -1,3 +1,5 @@
 
-SUBDIRS = qtlua
+SUBDIRS = qtlua uic
+
+EXTRA_DIST = CMakeLists.txt
 

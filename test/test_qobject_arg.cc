@@ -18,11 +18,15 @@
 
 */
 
+#include <QApplication>
+
 #include "test.hh"
 #include "test_qobject_arg.hh"
 
-int main()
+int main(int argc, char **argv)
 {
+  QApplication app(argc, argv);
+
   try {
   {
     QtLua::State ls;
@@ -31,22 +35,33 @@ int main()
 
     ls.exec_statements("function f(obj, ud) v = ud; end");
 
-    ASSERT(ls["f"].connect(myobj, "ud_arg(Ref<UserData>)"));
+    ASSERT(ls.at("f").connect(myobj, "ud_arg(QtLua::UserData::ptr)"));
+    ls.check_empty_stack();
 
-    ASSERT(ls["v"].type() == Value::TNil);
+    ASSERT(ls.at("v").type() == Value::TNil);
+    ls.check_empty_stack();
 
     myobj->send(QTLUA_REFNEW(MyData, 18));
+    ls.check_empty_stack();
 
-    ASSERT(ls["v"].type() == Value::TUserData);
-    ASSERT(ls["v"][0].to_number() == 18);
+    ASSERT(ls.at("v").type() == Value::TUserData);
+    ls.check_empty_stack();
 
-    ASSERT(ls["f"].disconnect(myobj, "ud_arg(Ref<UserData>)"));
+    ASSERT(ls.at("v").at(0).to_number() == 18);
+    ls.check_empty_stack();
+
+    ASSERT(ls.at("f").disconnect(myobj, "ud_arg(QtLua::UserData::ptr)"));
+    ls.check_empty_stack();
 
     ls["o"] = myobj;
 
     ASSERT(!myobj->_ud.valid());
+    ls.check_empty_stack();
+
     ls.exec_statements("o:ud_slot(v)");
+
     ASSERT(myobj->_ud.dynamiccast<MyData>()->_data == 18);
+    ls.check_empty_stack();
   }
 
   {
@@ -55,19 +70,25 @@ int main()
     MyObjectQO *myobj = new MyObjectQO();
 
     ls.exec_statements("function f(obj, qo) v = qo; end");
+    ls.check_empty_stack();
 
-    ASSERT(ls["f"].connect(myobj, "qo_arg(QObject*)"));
+    ASSERT(ls.at("f").connect(myobj, "qo_arg(QObject*)"));
+    ls.check_empty_stack();
 
-    ASSERT(ls["v"].type() == Value::TNil);
+    ASSERT(ls.at("v").type() == Value::TNil);
+    ls.check_empty_stack();
 
     QObject *qo = new QObject();
     qo->setObjectName("qo");
     myobj->send(qo);
 
-    ASSERT(ls["v"].type() == Value::TUserData);
-    ASSERT(ls["v"]["objectName"].to_string() == "qo");
+    ASSERT(ls.at("v").type() == Value::TUserData);
+    ls.check_empty_stack();
 
-    //    ASSERT(ls["f"].disconnect(myobj, "qo_arg(Ref<UserData>)"));
+    ASSERT(ls.at("v").at("objectName").to_string() == "qo");
+    ls.check_empty_stack();
+
+    //    ASSERT(ls["f"].disconnect(myobj, "qo_arg(QtLua::UserData::ptr)"));
 
     ls["o"] = myobj;
 
@@ -75,6 +96,21 @@ int main()
     ls.exec_statements("o:qo_slot(v)");
     ASSERT(myobj->_qo == qo);
   }
+
+#if QT_VERSION >= 0x040500
+  {
+    QtLua::State ls;
+
+    ls.openlib(QtLua::QtLib);
+    ls.register_qobject_meta<MyObjectUD>();
+
+    QtLua::Value::List r = ls.exec_statements("a = qt.new_qobject(qt.meta.MyObjectUD, 42, nil); return a;");
+    ASSERT(r[0].type() == Value::TUserData);
+
+    r = ls.exec_statements("return a:foo(2)");
+    ASSERT(r[0].to_number() == 84);
+  }
+#endif
 
   } catch (QtLua::String &e) {
     std::cout << e.constData() << std::endl;

@@ -26,6 +26,9 @@
 
 namespace QtLua {
 
+/** @internal */
+#define QTLUA_THROW(context, str, ...) do { throw QtLua::String(#context ":" str) __VA_ARGS__; } while (0)
+
   /**
    * @short Character string class
    * @header QtLua/String
@@ -35,7 +38,7 @@ namespace QtLua {
    * for QtLua.
    *
    * This class is used as string object in the QtLua project. It is
-   * based on @ref QByteArray with added conversion facilities.
+   * based on @ref QByteArray with added conversion functions.
    *
    * This class is also used as exceptions type for exceptions
    * associated with lua errors.
@@ -54,7 +57,11 @@ namespace QtLua {
     /** Copy constructor */
     inline String(const QString &s);
     /** Replace next @tt % character in string with given string  */
-    inline String & arg(const String &arg);
+    inline String & arg(const QByteArray &arg);
+    /** Replace next @tt % character in string with given string  */
+    inline String & arg(const QString &arg);
+    /** Replace next @tt % character in string with given integer  */
+    inline String & arg(const char *arg);
     /** Replace next @tt % character in string with given integer  */
     inline String & arg(int arg);
     /** @tt{const char *} cast operator */

@@ -40,6 +40,10 @@ public:
     : _c1_proxy(_c1)
     , _c2_proxy(_c2)
   {
+    // references to underlying objects will count as a reference to this
+    _c1_proxy.ref_delegate(this);
+    _c2_proxy.ref_delegate(this);
+
     // populate read-only hash c1
     _c1.insert("a", "1");
     _c1.insert("b", "2");
@@ -69,6 +73,9 @@ int main()
 
     QtLua::State state;
     state.openlib(QtLua::QtLuaLib);
+							/* anchor end */
+    state.enable_qdebug_print(true);
+							/* anchor 2 */
 
     // Declare a lua global variable using our composite proxy
     state["composite"] = proxy;

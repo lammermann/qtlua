@@ -25,7 +25,7 @@
 
 #include <internal/QObjectWrapper>
 
-#include <internal/Member>
+#include <internal/QMetaValue>
 #include <internal/Method>
 #include <internal/MetaCache>
 #include <internal/QObjectIterator>
@@ -36,12 +36,12 @@ namespace QtLua {
 
   static const int destroyindex = QObject::staticMetaObject.indexOfSignal("destroyed()");
 
-  QObjectWrapper::QObjectWrapper(State &ls, QObject *obj)
+  QObjectWrapper::QObjectWrapper(State *ls, QObject *obj)
     : _ls(ls),
       _obj(obj),
       _lua_next_slot(1),
-      _reparent(true),
-      _delete(obj && obj->parent() && get_wrapper(ls, obj->parent())->_delete)
+      _reparent(false),
+      _delete(obj && obj->parent())
   {
 #ifdef QTLUA_QOBJECTWRAPPER_DEBUG
     qDebug() << "wrapper object created" << _obj;
@@ -51,13 +51,13 @@ namespace QtLua {
       {
 	assert_do(QMetaObject::connect(obj, destroyindex, this, metaObject()->methodCount() + 0));
 
-	ls._whash.insert(obj, this);
+	ls->_whash.insert(obj, this);
 	// increment reference count since we are bound to a qobject
 	_inc();
       }
   }
 
-  Ref<QObjectWrapper> QObjectWrapper::get_wrapper(State &ls, QObject *obj)
+  Ref<QObjectWrapper> QObjectWrapper::get_wrapper(State *ls, QObject *obj)
   {
 #ifdef QTLUA_QOBJECTWRAPPER_DEBUG
     qDebug() << "wrapper object get" << obj;
@@ -65,9 +65,9 @@ namespace QtLua {
 
     if (obj)
       {
-	wrapper_hash_t::iterator i = ls._whash.find(obj);
+	wrapper_hash_t::iterator i = ls->_whash.find(obj);
 
-	if (i != ls._whash.end())
+	if (i != ls->_whash.end())
 	  return *i.value();
       }
 
@@ -76,7 +76,7 @@ namespace QtLua {
     return qow;
   }
 
-  Ref<QObjectWrapper> QObjectWrapper::get_wrapper(State &ls, QObject *obj, bool reparent, bool delete_)
+  Ref<QObjectWrapper> QObjectWrapper::get_wrapper(State *ls, QObject *obj, bool reparent, bool delete_)
   {
     QObjectWrapper::ptr qow = get_wrapper(ls, obj);
 
@@ -93,7 +93,7 @@ namespace QtLua {
 #endif
     assert(_obj = sender());
 
-    assert_do(_ls._whash.remove(_obj));
+    assert_do(_ls->_whash.remove(_obj));
     _obj = 0;
     _drop();
   }
@@ -106,13 +106,13 @@ namespace QtLua {
 
     if (_obj)
       {
-	assert_do(_ls._whash.remove(_obj));
+	assert_do(_ls->_whash.remove(_obj));
 
 	assert_do(QMetaObject::disconnect(_obj, destroyindex, this, metaObject()->methodCount() + 0));
 
 	_lua_disconnect_all();
 
-	if (_delete)
+	if (!_obj->parent() && _delete)
 	  {
 #ifdef QTLUA_QOBJECTWRAPPER_DEBUG
 	    qDebug() << "wrapped object delete" << _obj;
@@ -122,13 +122,13 @@ namespace QtLua {
       }
   }
 
-  void QObjectWrapper::ref_drop(int count)
+  void QObjectWrapper::ref_single()
   {
 #ifdef QTLUA_QOBJECTWRAPPER_DEBUG
-    qDebug() << "wrapper refdrop" << count << _delete << _obj;
+    qDebug() << "wrapper refdrop" << _delete << _obj;
 #endif
 
-    if (_obj && count == 1 && !_obj->parent() && _delete)
+    if ((_obj && !_obj->parent()) && _delete)
       _drop();
   }
 
@@ -146,19 +146,17 @@ namespace QtLua {
 	return -1;
       }
 
+    if (!_obj)
+      return -1;
+
     lua_slots_hash_t::iterator i = _lua_slots.find(id);
     assert(i != _lua_slots.end());
 
     Value::List lua_args;
 
     // first arg is sender object
-    if (_obj)
-      {
-	assert(_obj == sender());
-	lua_args.push_back(Value(_ls, QObjectWrapper::get_wrapper(_ls, _obj)));
-      }
-    else
-      lua_args.push_back(Value(_ls));
+    assert(_obj == sender());
+    lua_args.push_back(Value(_ls, QObjectWrapper::get_wrapper(_ls, _obj)));
 
     // push more args from parameter type informations
     QMetaMethod mm = _obj->metaObject()->method(i.value()._sigindex);
@@ -166,7 +164,7 @@ namespace QtLua {
     foreach(const QByteArray &pt, mm.parameterTypes())
       {
 	qt_args++;
-	lua_args.push_back(Member::raw_get_object(_ls, QMetaType::type(pt.constData()), *qt_args));
+	lua_args.push_back(QMetaValue::raw_get_object(_ls, QMetaType::type(pt.constData()), *qt_args));
       }
 
     try {
@@ -180,6 +178,8 @@ namespace QtLua {
 
   void QObjectWrapper::_lua_connect(int sigindex, const Value &value)
   {
+    get_object();
+
     switch (value.type())
       {
       case Value::TUserData:
@@ -196,16 +196,20 @@ namespace QtLua {
 	    return;
 	  }
 
-	throw String("Unable to connect Qt signal.");
+	QTLUA_THROW(QtLua::QObjectWrapper, "Failed to connect the Qt signal to a lua function.");
       }
 
       default:
-	throw String("Can not connect lua::% type value to Qt signal.").arg(value.type_name());
+	QTLUA_THROW(QtLua::QObjectWrapper, "Can not connect a `lua::%' lua value to a Qt signal.",
+		    .arg(value.type_name()));
       }
   }
 
   bool QObjectWrapper::_lua_disconnect(int sigindex, const Value &value)
   {
+    if (!_obj)
+      return false;
+
     lua_slots_hash_t::iterator i;
 
     for (i = _lua_slots.begin(); i != _lua_slots.end(); )
@@ -227,6 +231,9 @@ namespace QtLua {
 
   void QObjectWrapper::_lua_disconnect_all(int sigindex)
   {
+    if (!_obj)
+      return;
+
     lua_slots_hash_t::iterator i;
 
     for (i = _lua_slots.begin(); i != _lua_slots.end(); )
@@ -245,6 +252,9 @@ namespace QtLua {
 
   void QObjectWrapper::_lua_disconnect_all()
   {
+    if (!_obj)
+      return;
+
     lua_slots_hash_t::iterator i;
 
     for (i = _lua_slots.begin(); i != _lua_slots.end(); )
@@ -265,7 +275,7 @@ namespace QtLua {
     return 0;
   }
 
-  Value QObjectWrapper::meta_index(State &ls, const Value &key)
+  Value QObjectWrapper::meta_index(State *ls, const Value &key)
   {
     QObject &obj = get_object();
     String skey = key.to_string();
@@ -285,24 +295,38 @@ namespace QtLua {
     assert(_obj);
 
     if (!_reparent)
-      throw String("Parent change not allowed for '%' QObject.").arg(QObjectWrapper::qobject_name(*_obj));
+      QTLUA_THROW(QtLua::QObjectWrapper, "Parent change disallowed for the `%' QObject.",
+		  .arg(QObjectWrapper::qobject_name(*_obj)));
 
-    // FIXME handle non-widget reparent
     if (!_obj->isWidgetType() || (parent && !parent->isWidgetType()))
-      throw String("Reparent of non QWidget objects not supported yet.");
-
-    qobject_cast<QWidget*>(_obj)->setParent(qobject_cast<QWidget*>(parent));
+      _obj->setParent(parent);
+    else
+      qobject_cast<QWidget*>(_obj)->setParent(qobject_cast<QWidget*>(parent));
   }
 
-  void QObjectWrapper::meta_newindex(State &ls, const Value &key, const Value &value)
+  void QObjectWrapper::meta_newindex(State *ls, const Value &key, const Value &value)
   {
     QObject &obj = get_object();
     String skey = key.to_string();
 
     // handle existing children access
-    if (QObject *child = get_child(obj, skey))
+    if (QObject *cobj = get_child(obj, skey))
       {
-	QObjectWrapper::get_wrapper(ls, child)->reparent(0);
+	QObjectWrapper::ptr cw = get_wrapper(ls, cobj);
+
+	if (value.is_nil())
+	  {
+	    cw->reparent(0);
+	    return;
+	  }
+
+	QObjectWrapper::ptr vw = value.to_userdata_cast<QObjectWrapper>();
+	QObject &vobj = vw->get_object();
+
+	cw->reparent(0);
+	vobj.setObjectName(skey.to_qstring());
+	vw->reparent(&obj);
+	return;
       }
     else
       {
@@ -316,18 +340,17 @@ namespace QtLua {
 	  }
       }
 
-    // fallback to child insertion
-    if (value.type() != Value::TNil)
-      {
-	QObjectWrapper::ptr qow = value.to_userdata_cast<QObjectWrapper>();
-	QObject &child = qow->get_object();
-	child.setObjectName(skey.to_qstring());
-	qow->reparent(&obj);
-      }
+    // child insertion
+    QObjectWrapper::ptr vw = value.to_userdata_cast<QObjectWrapper>();
+    QObject &vobj = vw->get_object();
+
+    vobj.setObjectName(skey.to_qstring());
+    vw->reparent(&obj);
   }
 
-  Ref<Iterator> QObjectWrapper::new_iterator(State &ls)
+  Ref<Iterator> QObjectWrapper::new_iterator(State *ls)
   {
+    get_object();
     return QTLUA_REFNEW(QObjectIterator, ls, *this);
   }
 
@@ -346,7 +369,7 @@ namespace QtLua {
 
   String QObjectWrapper::get_type_name() const
   {
-    return _obj->metaObject()->className();
+    return _obj ? _obj->metaObject()->className() : "";
   }
 
   String QObjectWrapper::get_value_str() const
@@ -360,7 +383,8 @@ namespace QtLua {
 
   void QObjectWrapper::completion_patch(String &path, String &entry, int &offset)
   {
-    entry += ".";
+    if (_obj)
+      entry += ".";
   }
 
   String QObjectWrapper::qobject_name(QObject &obj)

@@ -56,7 +56,7 @@ public:
   /** Attach or detach container. argument may be NULL */
   void set_container(Container *list);
 
-  Ref<Iterator> new_iterator(State &ls);
+  Ref<Iterator> new_iterator(State *ls);
   bool support(Value::Operation c) const;
 
 private:
@@ -81,7 +81,7 @@ private:
     ValueRef get_value_ref();
 
     QPointer<State> _ls;
-    typename QLinkedListProxy::ptr _proxy;
+    Ref<QLinkedListProxy> _proxy;
     typename Container::const_iterator _it;
     unsigned int _i;
   };

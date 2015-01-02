@@ -31,13 +31,11 @@ namespace QtLua {
     {
       if ((_type = QMetaType::type(name)))
 	{
-	  _typename = 0;
 	  if (types_map.contains(_type))
-	    throw String("Lua conversion handler already registered for type %").arg(_type);
+	    QTLUA_THROW(QtLua::MetaType, "A lua conversion handler is already registered for the `%' type.", .arg(_type));
 	}
       else
 	{
-	  _typename = name;
 	  _type = qRegisterMetaType<X>(name);
 	}
 
@@ -48,10 +46,9 @@ namespace QtLua {
   MetaType<X>::MetaType(int type)
     {
       _type = type;
-      _typename = 0;
 
       if (types_map.contains(type))
-	throw String("Lua conversion handler already registered for type %").arg(type);
+	QTLUA_THROW(QtLua::MetaType, "A lua conversion handler is already registered for type handle `%'.", .arg(_type));
 
       types_map.insert(type, reinterpret_cast<metatype_void_t*>(this));
     }
@@ -60,8 +57,6 @@ namespace QtLua {
   MetaType<X>::~MetaType()
     {
       types_map.remove(_type);
-      if (_typename)
-	QMetaType::unregisterType(_typename);
     }
 
   template <typename X>
@@ -71,7 +66,7 @@ namespace QtLua {
   }
 
   template <class X>
-  QtLua::Value MetaTypeQObjectStar<X>::qt2lua(QtLua::State &ls, X* const * qtvalue)
+  QtLua::Value MetaTypeQObjectStar<X>::qt2lua(QtLua::State *ls, X* const * qtvalue)
   {
     return Value(ls, QObjectWrapper::get_wrapper(ls, *qtvalue));
   }
@@ -82,8 +77,8 @@ namespace QtLua {
     QObject *obj = &luavalue.to_userdata_cast<QObjectWrapper>()->get_object();
     X *w = qobject_cast<X*>(obj);
     if (!w)
-      throw String("Can not convert lua value, QObject is not a %.")
-	.arg(QMetaType::typeName(MetaType<X*>::get_type()));
+      QTLUA_THROW(QtLua::MetaType, "Can not convert from lua value, QObject is not a `%'.",
+		  .arg(QMetaType::typeName(MetaType<X*>::get_type())));
     *qtvalue = w;
     return true;
   }

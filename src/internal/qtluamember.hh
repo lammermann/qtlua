@@ -44,9 +44,6 @@ namespace QtLua {
  */
   class Member : public UserData
   {
-    friend class QObjectWrapper;
-    friend class Value;
-
   public:
     QTLUA_REFTYPE(Member);
 
@@ -60,9 +57,6 @@ namespace QtLua {
     virtual Value access(QObjectWrapper &qow);
 
   protected:
-    static Value raw_get_object(State &ls, int type, const void *data);
-    static bool raw_set_object(int type, void *data, const Value &v);
-
     const QMetaObject *_mo;
     int _index;
   };

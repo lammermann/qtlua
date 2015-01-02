@@ -27,19 +27,51 @@
 
 namespace QtLua {
 
+  Value State::operator[] (const Value &key) const
+  {
+    return at(key);
+  }
+
   Value State::operator[] (const String &key) const
   {
-    return (*this)[Value(*this, key)];
+    return (*this)[Value(this, key)];
+  }
+
+  Value State::at(const String &key) const
+  {
+    return (*this)[key];
   }
 
   ValueRef State::operator[] (const String &key)
   {
-    return (*this)[Value(*this, key)];
+    return (*this)[Value(this, key)];
   }
 
   void State::output_str(const String &str)
   {
     output(str.to_qstring());
+  }
+
+  lua_State * State::get_lua_state() const
+  {
+    return _lst;
+  }
+
+  template <class QObject_T>
+  static inline QObject * create_qobject()
+  {
+    return new QObject_T();
+  }
+
+  template <class QObject_T>
+  void State::register_qobject_meta()
+  {
+    qtlib_register_meta(&QObject_T::staticMetaObject, &create_qobject<QObject_T>);
+  }
+
+  void State::enable_qdebug_print(bool enabled)
+  {
+    _debug_output = enabled;
   }
 
 }

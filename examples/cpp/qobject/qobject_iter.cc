@@ -26,6 +26,7 @@ int main()
 {
   QtLua::State state;
   state.openlib(QtLua::QtLuaLib);
+  state.enable_qdebug_print(true);
 
   QAction object(0);
 
@@ -33,6 +34,6 @@ int main()
 
   state.exec_statements("for key, value in each(qobject) do print(key, value) end");
 
-  state["qobject"] = QtLua::Value(state);
+  state["qobject"] = QtLua::Value(&state);
 }
 

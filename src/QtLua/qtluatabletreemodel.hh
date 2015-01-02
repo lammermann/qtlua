@@ -18,6 +18,7 @@
 
 */
 
+// __moc_flags__ -fQtLua/TableTreeModel
 
 #ifndef QTLUA_TABLETREEMODEL_HH_
 #define QTLUA_TABLETREEMODEL_HH_
@@ -25,7 +26,7 @@
 #include <QAbstractItemModel>
 #include <QPointer>
 
-#include <QtLua/Value>
+#include "qtluavalue.hh"
 
 namespace QtLua {
 
@@ -43,21 +44,24 @@ namespace QtLua {
    * are handled.
    *
    * Lua tables can be edited from Qt views using this model. The
-   * @ref Attribute flags can be used to finely control which editing
+   * @ref Attribute flags can be used to control which editing
    * actions are allowed. User input may be evaluated as a lua
    * expression when editing a table entry.
    *
    * Lua tables change may @b not update the model on the fly and the
    * @ref update function must be called to refresh views on heavy
    * modifications. This is partially due to lack of lua mechanism to
-   * implement efficient table change event.
+   * implement efficient table change event. If you need to edit the
+   * underlying data from lua and have the views updated
+   * automatically, you might use the @ref UserItemModel approach
+   * instead.
    *
    * Usage example:
    * @example examples/cpp/mvc/tabletreeview.cc:1
    *
    * @image qtlua_tabletreemodel.png
    *
-   * @see TableDialog
+   * @see ItemViewDialog
    */
 
   class TableTreeModel : public QAbstractItemModel
@@ -73,7 +77,9 @@ namespace QtLua {
       {
 	Recursive	= 0x00000001,	//< Expose nested tables too.
 	UserDataIter	= 0x00000002,	//< Iterate over UserData objects too.
-	HideType	= 0x00000004,	//< Do not show entry type in an additionnal column.
+	HideKey	        = 0x00000020,	//< Do not show key column.
+	HideValue	= 0x00000040,	//< Do not show value column.
+	HideType	= 0x00000004,	//< Do not show value type column.
 	UnquoteKeys	= 0x00000008,	//< Strip double quotes from string keys
 	UnquoteValues	= 0x00000010,	//< Strip double quotes from string values
 
@@ -83,7 +89,7 @@ namespace QtLua {
 	EditInsert	= 0x00008000,	//< Allow insertion of new entries.
 	EditRemove	= 0x00010000,	//< Allow deletion of existing entries.
 	EditKey		= 0x00020000,	//< Allow entry key update.
-	EditAll		= 0x00040000,	//< Editable, EditInsert, EditRemove and EditKey allowed
+	EditAll		= 0x00039000,	//< Editable, EditInsert, EditRemove and EditKey allowed
       };
 
     Q_DECLARE_FLAGS(Attributes, Attribute);
@@ -102,13 +108,35 @@ namespace QtLua {
     /** Get supported operations for entry at given @ref QModelIndex */
     Attributes get_attr(const QModelIndex &index) const;
 
-  public:
+    /**
+     * @multiple {2}
+     * Shortcut function to display a modal lua table dialog.
+     *
+     * @param parent parent widget
+     * @param title dialog window title
+     * @param table lua table to expose
+     * @param attr model attributes, control display and edit options
+     */
+    static void tree_dialog(QWidget *parent, const QString &title, const Value &table, 
+			    Attributes attr = Recursive);
+
+    static void table_dialog(QWidget *parent, const QString &title, const Value &table, 
+			     Attributes attr = Recursive);
+
     /** @internal Columns ids */
     enum ColumnId
       {
-	ColKey = 0, ColValue = 1, ColType = 2,
+	ColKey,
+	ColValue,
+	ColType,
+	ColNone,
       };
 
+  signals:
+
+    void edit_error(const QString &message);
+
+  protected:
     /** @multiple @internal */
     QModelIndex index(int row, int column, const QModelIndex &parent) const;
     QModelIndex parent(const QModelIndex &index) const;
@@ -125,6 +153,8 @@ namespace QtLua {
     /** */
 
   private:
+
+    enum ColumnId get_column_id(int col, Attributes attr) const;
 
     void check_state() const;
     TableTreeKeys * table_from_index(const QModelIndex &index) const;

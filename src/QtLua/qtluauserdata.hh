@@ -67,6 +67,7 @@ class Iterator;
 class UserData : public QtLua::Refobj<UserData>
 {
   friend class State;
+  friend class ValueBase;
   friend class Value;
   friend class ValueRef;
   friend uint qHash(const Value &lv);
@@ -91,7 +92,7 @@ public:
    * @param b Second value involved in operation for binary operators.
    * @returns Operation result value.
    */
-  virtual Value meta_operation(State &ls, Value::Operation op, const Value &a, const Value &b);
+  virtual Value meta_operation(State *ls, Value::Operation op, const Value &a, const Value &b);
 
   /** 
    * This function is called when a table read access operation is
@@ -103,7 +104,7 @@ public:
    * @param key Value used as table index.
    * @returns Table access result value.
    */
-  virtual Value meta_index(State &ls, const Value &key);
+  virtual Value meta_index(State *ls, const Value &key);
 
   /**
    * This function is called when a table write access operation is
@@ -115,7 +116,7 @@ public:
    * @param key Value used as table index.
    * @param value Value to put in table.
    */
-  virtual void meta_newindex(State &ls, const Value &key, const Value &value);
+  virtual void meta_newindex(State *ls, const Value &key, const Value &value);
 
   /**
    * This function returns @tt true if either the @ref Value::OpIndex
@@ -125,7 +126,7 @@ public:
    * The default implementation returns @tt{!meta_index(ls,
    * key).is_nil()} or @tt false if @ref meta_index throws.
    */
-  virtual bool meta_contains(State &ls, const Value &key);
+  virtual bool meta_contains(State *ls, const Value &key);
 
   /**
    * This function is called when a function invokation operation is
@@ -137,7 +138,7 @@ public:
    * @param args List of passed arguments.
    * @returns List of returned values.
    */
-  virtual Value::List meta_call(State &ls, const Value::List &args);
+  virtual Value::List meta_call(State *ls, const Value::List &args);
 
   /**
    * This function may return an @ref Iterator object used to iterate
@@ -148,7 +149,7 @@ public:
    *
    * @returns an @ref Iterator based iterator object.
    */
-  virtual Ref<Iterator> new_iterator(State &ls);
+  virtual Ref<Iterator> new_iterator(State *ls);
 
   /**
    * This function returns an object type name. The default
@@ -175,8 +176,6 @@ public:
   /** Userdata compare less than, default implementation compares the @tt this pointers */
   virtual bool operator<(const UserData &ud);
 
-protected:
-
   /**
    * This helper function can be used to check arguments types passed
    * to the @ref meta_call functions. This function throw an error
@@ -191,12 +190,35 @@ protected:
    * @param min_count Minimum expected arguments count.
    * @param max_count Maximum expected arguments count or 0 if no limit.
    * @param ... List of @ref QtLua::Value::ValueType matching expected 
-   *   arguments type. At least @tt{max(min_count, max_count)}
+   *   arguments type. At least @tt{max(min_count, abs(max_count))}
    *   types must be passed. @ref QtLua::Value::TNone may be 
-   *   used as wildcard. Last specified type is expected for
-   *   all arguments above @tt min_count when @tt {max_count == 0}.
+   *   used as wildcard. A negative value can be used for @tt max_count
+   *   to indicate a unlimited number of lua arguments with a type list
+   *   longer than @tt min_count. Last specified type is expected for
+   *   all arguments above @tt{max(min_count, -max_count)}.
    */
   static void meta_call_check_args(const Value::List &args, int min_count, int max_count, ...);
+
+protected:
+
+  /**
+   * When @this is invoked from the @ref meta_call function, QtLua
+   * will request lua to @em yield when the @ref meta_call function
+   * returns.
+   *
+   * The current lua thread value is returned. The Value::call family
+   * of functions can be used on a lua thread value to resume the
+   * coroutine from C++ code. The @tt nil value is returned if not
+   * currently running inside a coroutine.
+   *
+   * When the @ref State::lua_version function returns a value less
+   * than 501, this function is not able to return the current thread
+   * value if it has not been created using the @ref Value::new_thread
+   * function. If the current thread has been created by any other
+   * mean (like call to the @tt {coroutine.create} lua 5.0 function) a
+   * boolean @tt true value is returned instead of the thread value.
+   */
+  Value yield(State *ls) const;
 
   /**
    * This function may be reimplemented to further modify completion
@@ -223,6 +245,8 @@ private:
 };
 
 }
+
+Q_DECLARE_METATYPE(QtLua::UserData::ptr);
 
 #endif
 

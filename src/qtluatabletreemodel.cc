@@ -18,16 +18,29 @@
 
 */
 
-#include <QMessageBox>
+#include <QDebug>
+#include <QTreeView>
+#include <QTableView>
+#include <QHeaderView>
+
 #include <QtLua/TableTreeModel>
+#include <QtLua/ItemViewDialog>
+
 #include <internal/TableTreeKeys>
 
 namespace QtLua {
 
+#define QTLUA_PROTECT(...)					\
+  try {								\
+    __VA_ARGS__;						\
+  } catch (const String &e) {					\
+    qDebug() << "TableTreeModel::" << __func__ << ": " << e;	\
+  }
+
   void TableTreeModel::check_state() const
   {
     if (!_st)
-      throw String("Can't use QtLua::TableTreeModel without associated QtLua::State object");
+      QTLUA_THROW(QtLua::TableTreeModel, "The associated State object has been destroyed.");
   }
 
   TableTreeModel::TableTreeModel(const Value &root, Attributes attr, QObject *parent)
@@ -43,10 +56,26 @@ namespace QtLua {
     delete _table;
   }
 
+  enum TableTreeModel::ColumnId TableTreeModel::get_column_id(int col, Attributes attr) const
+  {
+    if (attr & HideKey)
+      col++;
+    if (col >= 1 && (attr & HideValue))
+      col++;
+    if (col >= 2 && (attr & HideType))
+      col++;
+    return col >= 3 ? ColNone : (ColumnId)col;
+  }
+
   void TableTreeModel::update()
   {
     _table->clear();
+#if QT_VERSION < 0x050000
     reset();
+#else
+    beginResetModel();
+    endResetModel();
+#endif
   }
 
   TableTreeKeys * TableTreeModel::table_from_index(const QModelIndex &index) const
@@ -64,7 +93,9 @@ namespace QtLua {
       return QModelIndex();
 
     TableTreeKeys *t = table_from_index(parent);
-    assert(t);
+
+    if (!t)
+      return QModelIndex();
 
     t->update();
 
@@ -117,7 +148,7 @@ namespace QtLua {
     if (!_st)
       return 0;
 
-    return _table->_attr & HideType ? 2 : 3;
+    return !(_table->_attr & HideKey) + !(_table->_attr & HideValue) + !(_table->_attr & HideType);
   }
 
   QVariant TableTreeModel::data(const QModelIndex &index, int role) const
@@ -131,17 +162,19 @@ namespace QtLua {
 
       switch (role)
 	{
-	case Qt::DisplayRole:
-
-	  switch (index.column())
+	case Qt::DisplayRole: {
+	  switch (get_column_id(index.column(), t->_attr))
 	    {
 	    case ColKey:
 	      return QVariant(t->get_key(index.row()).to_string_p(!(t->_attr & UnquoteKeys)));
-	    case ColType:
-	      return QVariant(t->get_value(index.row()).type_name_u());
 	    case ColValue:
 	      return QVariant(t->get_value(index.row()).to_string_p(!(t->_attr & UnquoteValues)));
+	    case ColType:
+	      return QVariant(t->get_value(index.row()).type_name_u());
+	    default:
+	      return QVariant();
 	    }
+	}
 
 	default:
 	  return QVariant();
@@ -157,18 +190,18 @@ namespace QtLua {
     check_state();
 
     if (!index.isValid())
-      return Value(*_st);
+      return Value(_st);
 
     TableTreeKeys *t = static_cast<TableTreeKeys*>(index.internalPointer());
 
-    switch (index.column())
+    switch (get_column_id(index.column(), t->_attr))
       {
       case ColKey:
 	return t->get_key(index.row());
       case ColValue:
 	return t->get_value(index.row());
       default:
-	return Value(*_st);
+	return Value(_st);
       }
   }
 
@@ -194,7 +227,7 @@ namespace QtLua {
 
     if (t->_attr & Editable)
       {
-	switch (index.column())
+	switch (get_column_id(index.column(), t->_attr))
 	  {
 	  case ColValue:
 	    if (!t->is_table(index.row()))		// prevent edit if already explored table
@@ -204,6 +237,9 @@ namespace QtLua {
 	  case ColKey:
 	    if (t->_attr & EditKey || t->get_key(index.row()).is_nil())
 	      res = res | Qt::ItemIsEditable;
+	    break;
+
+	  default:
 	    break;
 	  }
       }
@@ -236,42 +272,39 @@ namespace QtLua {
       Value newvalue(_st->eval_expr(t->_attr & EditLuaEval, input));
       Value::ValueType newtype = newvalue.type();
 
-      switch (index.column())
+      switch (get_column_id(index.column(), t->_attr))
 	{
-	case ColValue:
+	case ColValue: {
 
 	  if (!(t->_attr & EditRemove) && newvalue.is_nil())
-	    throw String("Entry can not have a nil value.");
-
-	  // auto convert to string type when enforced
-	  if ((t->_attr & EditFixedType) &&
-	      oldtype == Value::TString &&
-	      newtype != Value::TString)
-	    {
-	      newvalue = newvalue.to_string_p(false);
-	      newtype = Value::TString;
-	    }
+	    QTLUA_THROW(QtLua::TableTreeModel, "Can not change the entry value to nil.");
 
 	  // check type change
 	  if ((t->_attr & EditFixedType) &&
 	      (oldtype != Value::TNil) && (oldtype != newtype))
-	    throw String("% value type must be preserved.").arg(Value::type_name(oldtype));
+	    QTLUA_THROW(QtLua::TableGridModel, "The entry value type is `%' and can not be changed.",
+			.arg(Value::type_name(oldtype)));
 
 	  t->set_value(index.row(), newvalue);
+	  emit dataChanged(index, index);
+	  emit layoutAboutToBeChanged();
+	  emit layoutChanged();
 	  return true;
+	}
 
 	case ColKey: {
 
 	  if (newvalue.is_nil())
-	    throw String("Entry key can not be a nil value.");
+	    QTLUA_THROW(QtLua::TableTreeModel, "The entry key can not be a nil value.");
 
-	  if (!t->_value[newvalue].is_nil())
-	    throw String("An entry with the same key already exists.");
+	  if (!t->_value.at(newvalue).is_nil())
+	    QTLUA_THROW(QtLua::TableTreeModel, "An entry with the same key already exists.");
 
 	  Value old = t->get_value(index.row());
-	  t->set_value(index.row(), Value(*_st));
+	  t->set_value(index.row(), Value(_st));
 	  t->set_key(index.row(), newvalue);
 	  t->set_value(index.row(), old);
+	  emit dataChanged(index, index);
 	  return true;
 	}
 
@@ -280,7 +313,7 @@ namespace QtLua {
 	}
 
     } catch (const String &s) {
-      QMessageBox::critical(0, "Error", QString("Value update error: ") + s.to_qstring());
+      emit edit_error(QString("Value update error: ") + s.to_qstring());
     }
 
     return false;
@@ -291,11 +324,9 @@ namespace QtLua {
     if (!_st)
       return false;
 
-    assert(count);
-
     TableTreeKeys *t = table_from_index(parent);
 
-    if (!(t->_attr & EditRemove))
+    if (!t || !(t->_attr & EditRemove))
       return false;
 
     beginRemoveRows(parent, row, row + count - 1);
@@ -303,7 +334,7 @@ namespace QtLua {
     // set lua table to nil and delete nested tables
     for (int i = row; i < row + count; i++)
       {
-	QTLUA_PROTECT(t->set_value(i, Value(*_st)));
+	QTLUA_PROTECT(t->set_value(i, Value(_st)));
 
 	if (TableTreeKeys *c = t->_entries[i]._table)
 	  delete c;
@@ -327,17 +358,15 @@ namespace QtLua {
     if (!_st)
       return false;
 
-    assert(count);
-
     TableTreeKeys *t = table_from_index(parent);
 
-    if (!(t->_attr & EditInsert))
+    if (!t || !(t->_attr & EditInsert))
       return false;
 
     beginInsertRows(parent, row, row + count - 1);
 
     for (int i = 0; i < count; i++)
-      t->_entries.insert(row, TableTreeKeys::Entry(Value(*_st)));
+      t->_entries.insert(row, TableTreeKeys::Entry(Value(_st)));
 
     for (int i = row + count; i < (int)t->count(); i++)
       if (TableTreeKeys *c = t->_entries[i]._table)
@@ -356,14 +385,14 @@ namespace QtLua {
     if (orientation == Qt::Vertical)
       return QVariant(section + 1);
 
-    switch (section)
+    switch (get_column_id(section, _table->_attr))
       {
       case ColKey:
 	return QVariant("key");
-      case ColType:
-	return QVariant("type");
       case ColValue:
-	return QVariant("value");
+	return QVariant("Value");
+      case ColType:
+	return QVariant("Type");
       default:
 	return QVariant();
       }
@@ -376,7 +405,7 @@ namespace QtLua {
 
     TableTreeKeys *t = static_cast<TableTreeKeys*>(index.internalPointer());
 
-    switch (index.column())
+    switch (get_column_id(index.column(), t->_attr))
       {
       default:
       case ColValue:
@@ -387,9 +416,60 @@ namespace QtLua {
 	  return index;
 
       case ColType:
-	return createIndex(index.row(), ColValue, t);
+	return createIndex(index.row(), t->_attr & HideKey ? 0 : 1, t);
       }
   }
+
+  void TableTreeModel::tree_dialog(QWidget *parent, const QString &title, const Value &table, 
+				   TableTreeModel::Attributes attr)
+  {
+    TableTreeModel *model = new TableTreeModel(table, attr, 0);
+    QTreeView *view = new QTreeView();
+
+    ItemViewDialog::EditActions a = 0;
+
+    if (attr & Editable)
+      a |= ItemViewDialog::EditData | ItemViewDialog::EditDataOnNewRow;
+    if (attr & EditInsert)
+      a |= ItemViewDialog::EditInsertRow | ItemViewDialog::EditInsertRowAfter;
+    if (attr & EditRemove)
+      a |= ItemViewDialog::EditRemoveRow;
+
+    ItemViewDialog d(a, model, view, parent);
+    d.setWindowTitle(title);
+
+    view->setRootIsDecorated(attr & Recursive);
+
+    connect(view, SIGNAL(expanded(const QModelIndex&)),
+	    &d, SLOT(tree_expanded()));
+
+    d.exec();
+  }
+
+  void TableTreeModel::table_dialog(QWidget *parent, const QString &title, const Value &table, 
+				    TableTreeModel::Attributes attr)
+  {
+    TableTreeModel *model = new TableTreeModel(table, attr, 0);
+    QTableView *view = new QTableView();
+
+    ItemViewDialog::EditActions a = 0;
+
+    if (attr & Editable)
+      a |= ItemViewDialog::EditData | ItemViewDialog::EditDataOnNewRow;
+    if (attr & EditInsert)
+      a |= ItemViewDialog::EditInsertRow | ItemViewDialog::EditInsertRowAfter;
+    if (attr & EditRemove)
+      a |= ItemViewDialog::EditRemoveRow;
+
+    ItemViewDialog d(a, model, view, parent);
+    d.setWindowTitle(title);
+
+    view->verticalHeader()->hide();
+
+    d.exec();
+  }
+
+
 
 }
 

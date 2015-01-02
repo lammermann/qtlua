@@ -24,24 +24,29 @@
 int main()
 {
     try {
-/* anchor 1 */
+							/* anchor 1 */
       QtLua::State state;
       state.openlib(QtLua::QtLuaLib);
+							/* anchor end */
+      state.enable_qdebug_print(true);
+							/* anchor 1 */
 
       // forge plugin filename
       QtLua::String filename = QtLua::String("plugin") + QtLua::Plugin::get_plugin_ext();
  
-      // load the plugin as a QtLua::Plugin userdata value
-      state["plugin_userdata"] = QTLUA_REFNEW(QtLua::Plugin, filename);
-      // access the QtLua::Plugin object and call the QtLua::Function object
-      state.exec_statements("print(plugin_userdata.foo())");
-
       // load the plugin and convert the QtLua::Plugin object to lua table
-      state["plugin_table"] = QtLua::Plugin(filename).to_table(state);
-      // access the lua table and call the QtLua::Function object
+      state["plugin_table"] = QTLUA_REFNEW(QtLua::Plugin, filename)->to_table(&state);
       state.exec_statements("print(plugin_table.foo())");
 
-/* anchor end */
+      // unload the plugin
+      state.exec_statements("plugin_table = nil");
+      state.gc_collect();
+
+      // reload the plugin as a QtLua::Plugin userdata value
+      state["plugin_userdata"] = QTLUA_REFNEW(QtLua::Plugin, filename);
+      state.exec_statements("print(plugin_userdata.foo())");
+
+							/* anchor end */
     } catch (QtLua::String &e) {
       std::cerr << e.constData() << std::endl;
     }

@@ -25,8 +25,8 @@
 #include <QTreeView>
 
 #include <QtLua/State>
-#include <QtLua/Item>
-#include <QtLua/ListItem>
+#include <QtLua/UserItem>
+#include <QtLua/UserListItem>
 
 class MainWindow : public QMainWindow
 {
@@ -39,7 +39,7 @@ public:
 private:
   QtLua::State *state;
   QTreeView *treeview;
-  QtLua::ItemModel *model;
+  QtLua::UserItemModel *model;
 };
 
 #endif

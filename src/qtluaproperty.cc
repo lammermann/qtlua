@@ -22,7 +22,7 @@
 
 #include <internal/QObjectWrapper>
 
-#include <internal/Member>
+#include <internal/QMetaValue>
 #include <internal/Property>
 
 namespace QtLua {
@@ -38,41 +38,18 @@ namespace QtLua {
     QObject &obj = qow.get_object();
 
     // Try to reset property if assign nil
-    if (value.type() == Value::TNil)
+    if (value.type() == Value::TNil && mp.isResettable())
       {
-	if (!mp.isResettable())
- 	  throw String("QObject property '%' is not resettable.").arg(mp.name());
-
 	if (!mp.reset(&obj))
- 	  throw String("Unable to reset QObject property '%'.").arg(mp.name());
+ 	  QTLUA_THROW(QtLua::Property, "Can't reset QObject property `%'.", .arg(mp.name()));
 	return;
       }
 
     if (!mp.isWritable())
-      throw String("QObject property '%' is read only.").arg(mp.name());
+      QTLUA_THROW(QtLua::Property, "QObject property `%' is read only.", .arg(mp.name()));
 
-    int type = mp.userType();
-
-    if (type > 0)
-      {
-	void *data = QMetaType::construct(type);
-	assert(data);
-
-	if (Member::raw_set_object(type, data, value))
-	  {
-	    bool ok = mp.write(&obj, QVariant(type, data));
-	    QMetaType::destroy(type, data);
-
-	    if (!ok)
-	      throw String("Unable to set QObject property.");
-
-	    return;
-	  }
-
-	QMetaType::destroy(type, data);
-      }
-
-    throw String("Unsupported convertion from % lua type to % Qt type.").arg(value.type_name_u()).arg(mp.typeName());
+    if (!mp.write(&obj, QMetaValue(mp.userType(), value).to_qvariant()))
+      QTLUA_THROW(QtLua::Property, "Unable to set value of the `%' QObject property.", .arg(mp.name()));
   }
 
   Value Property::access(QObjectWrapper &qow)
@@ -81,14 +58,14 @@ namespace QtLua {
     QObject &obj = qow.get_object();
 
     if (!mp.isReadable())
-      throw String("QObject property '%' is not readable.").arg(mp.name());
+      QTLUA_THROW(QtLua::Property, "QObject property `%' is not readable.", .arg(mp.name()));
 
     QVariant variant = mp.read(&obj);
 
     if (!variant.isValid())
-      throw String("Unable to get QObject property.");
+      QTLUA_THROW(QtLua::Property, "Unable to read a valid value from the `%' QObject property.", .arg(mp.name()));
 
-    return Value(Member::raw_get_object(qow.get_state(), variant.userType(), variant.constData()));
+    return Value(qow.get_state(), variant);
   }
 
   String Property::get_value_str() const

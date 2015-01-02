@@ -12,8 +12,14 @@
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
+/* luajit ffi library is available */
+#undef HAVE_LUA_FFILIB
+
 /* lua_gc function is available */
 #undef HAVE_LUA_GC
+
+/* luajit jit library is available */
+#undef HAVE_LUA_JITLIB
 
 /* lua os library is available */
 #undef HAVE_LUA_OPENLIBS
@@ -26,6 +32,12 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Qt and compiler supports for c++11 */
+#undef HAVE_QT_CPP2011
+
+/* Qt uitools module is available */
+#undef HAVE_QT_UITOOLS
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H

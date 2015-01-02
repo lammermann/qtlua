@@ -34,7 +34,7 @@ namespace QtLua {
       delete t;
   }
 
-  Value DispatchProxy::meta_operation(State &ls, Value::Operation op, const Value &a, const Value &b)
+  Value DispatchProxy::meta_operation(State *ls, Value::Operation op, const Value &a, const Value &b)
   {
     foreach (const TargetBase *t, _targets)
       {
@@ -45,7 +45,7 @@ namespace QtLua {
     return UserData::meta_operation(ls, op, a, b);
   }
 
-  Value DispatchProxy::meta_index(State &ls, const Value &key)
+  Value DispatchProxy::meta_index(State *ls, const Value &key)
   {
     bool supported = false;
 
@@ -63,7 +63,7 @@ namespace QtLua {
     return supported ? Value(ls) : UserData::meta_index(ls, key);
   }
 
-  void DispatchProxy::meta_newindex(State &ls, const Value &key, const Value &value)
+  void DispatchProxy::meta_newindex(State *ls, const Value &key, const Value &value)
   {
     bool shadow = false;
 
@@ -76,7 +76,8 @@ namespace QtLua {
 	    if (t->_new_keys || c)
 	      {
 		if (!c && shadow)
-		  throw String("Table write access to read only entry");
+		  QTLUA_THROW(QtLua::DispatchProxy, "Can not write to the `%' read-only index.",
+			      .arg(key.to_string_p(false)));
 
 		return t->_meta_newindex(ls, key, value);
 	      }
@@ -91,11 +92,11 @@ namespace QtLua {
     return UserData::meta_newindex(ls, key, value);
   }
 
-  bool DispatchProxy::meta_contains(State &ls, const Value &key)
+  bool DispatchProxy::meta_contains(State *ls, const Value &key)
   {
     foreach (const TargetBase *t, _targets)
       {
-	if ((t->_ops & (Value::OpIndex || Value::OpNewindex)) &&
+	if ((t->_ops & (Value::OpIndex | Value::OpNewindex)) &&
 	    (t->_support(Value::OpIndex) || t->_support(Value::OpNewindex)) && 
 	    t->_meta_contains(ls, key))
 	  return true;
@@ -104,7 +105,7 @@ namespace QtLua {
     return false;
   }
 
-  Value::List DispatchProxy::meta_call(State &ls, const Value::List &args)
+  Value::List DispatchProxy::meta_call(State *ls, const Value::List &args)
   {
     foreach (const TargetBase *t, _targets)
       {
@@ -115,7 +116,7 @@ namespace QtLua {
     return UserData::meta_call(ls, args);
   }
 
-  Ref<Iterator> DispatchProxy::new_iterator(State &ls)
+  Ref<Iterator> DispatchProxy::new_iterator(State *ls)
   {
     return QTLUA_REFNEW(ProxyIterator, ls, *this);
   }
@@ -143,7 +144,7 @@ namespace QtLua {
 	    if (!_dp._targets[_index]->_support(Value::OpIterate))
 	      continue;
 
-	    _cur = _dp._targets[_index]->_new_iterator(*_state);
+	    _cur = _dp._targets[_index]->_new_iterator(_state);
 	  }
 
 	if (_cur->more())

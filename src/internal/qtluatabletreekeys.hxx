@@ -27,28 +27,32 @@ namespace QtLua {
 
   const Value & TableTreeKeys::get_key(int n) const
   {
+    assert(n < _entries.size());
     return _entries[n]._key;
   }
 
   void TableTreeKeys::set_key(int n, const Value &key)
   {
+    assert(n < _entries.size());
     _entries[n]._key = key;
   }
 
   Value TableTreeKeys::get_value(int n) const
   {
     assert(n < _entries.size());
-    return _value[_entries[n]._key];
+    return _value.at(_entries[n]._key);
   }
 
   void TableTreeKeys::set_value(int n, const Value &value)
   {
     assert(n < _entries.size());
     _value[_entries[n]._key] = value;
+    _entries[n]._table_chk = false;
   }
 
   bool TableTreeKeys::is_table(int n) const
   {
+    assert(n < _entries.size());
     return _entries[n]._table != 0;
   }
 

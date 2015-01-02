@@ -34,14 +34,14 @@ namespace QtLua {
    * @module {Base}
    *
    * This class acts as a reference to a lua value stored in a lua
-   * table (or userdata value). It stores two lua values: a table
+   * table (or userdata value). It stores two lua values: a table value
    * along with a key value.
    *
    * This is mainly used in the @ref State, @ref Value and
    * @ref Value::iterator classes to allow modification of lua tables with
    * the C++ square bracket operator functions.
    */
-  class ValueRef : public Value
+  class ValueRef : public ValueBase
   {
     friend class Value;
     friend class State;
@@ -49,34 +49,65 @@ namespace QtLua {
   public:
     /** Construct reference with given table and key. */
     inline ValueRef(const Value &table, const Value &key);
+
     /** Construct reference with given table and key. */
     template <typename T>
     inline ValueRef(const Value &table, const T &key);
 
-    ValueRef(const ValueRef &ref);
+    inline ~ValueRef();
 
-    /** Assign new value to referenced value. */
-    const ValueRef & operator=(const Value &v) const;
-    /** Assign new value to referenced value. */
-    inline const ValueRef & operator=(const ValueRef &v) const;
-    /** Assign new boolean to referenced value. */
-    inline const ValueRef & operator=(Bool n) const;
-    /** Assign new number to referenced value. */
-    inline const ValueRef & operator=(double n) const;
-    /** Assign new number to referenced value. */
-    inline const ValueRef & operator=(int n) const;
-    /** Assign new string to referenced value. */
-    inline const ValueRef & operator=(const String &str) const;
-    /** Assign new user data to referenced value. */
-    inline const ValueRef & operator=(const Ref<UserData> &ud) const;
-    /** Assign a wrapped QObject to reference. */
-    inline const ValueRef & operator=(QObject *obj) const;
+#ifdef Q_COMPILER_RVALUE_REFS
+    /** Construct reference with given table and key. @multiple */
+    inline ValueRef( Value &&table, const Value &key);
+
+    inline ValueRef(const Value &table, Value &&key);
+
+    template <typename T>
+    inline ValueRef(Value &&table, const T &key);
+
+    inline ValueRef(Value &&table, Value &&key);
+
+    /** */
+    inline ValueRef(ValueRef &&ref);
+#endif
+
+    inline ValueRef(const ValueRef &ref);
+
+    Value value() const;
+
+    /** Assign new value to referenced value. @multiple */
+    inline const Value & operator=(const Value &v) const;
+
+    inline Value operator=(Bool n) const;
+
+    inline Value operator=(double n) const;
+    inline Value operator=(float n) const;
+    inline Value operator=(int n) const;
+    inline Value operator=(unsigned int n) const;
+
+    inline Value operator=(const String &str) const;
+    inline Value operator=(const QString &str) const;
+    inline Value operator=(const char *str) const;
+
+    inline Value operator=(const Ref<UserData> &ud) const;
+    inline Value operator=(UserData *ud) const;
+    inline Value operator=(QObject *obj) const;
+    inline Value operator=(const QVariant &qv) const;
+    /** */
 
   private:
-    void init(const Value &table);
-    void push_value() const;
+    inline const ValueRef & operator=(const ValueRef &v) const;
+    void table_set(const Value &v) const;
 
-    Value _key;
+    void copy_table_key(double tid, double kid);
+    void copy_table(double id);
+    void copy_key(double id);
+
+    void push_value(lua_State *st) const;
+    void cleanup();
+
+    double _table_id;
+    double _key_id;
   };
 
 }

@@ -23,6 +23,15 @@
 
 */
 
+#include "config.hh"
+
+extern "C" {
+#include <lua.h>
+#ifdef HAVE_LUA_JITLIB
+# include <luajit.h>
+#endif
+}
+
 #include <QApplication>
 #include <QFile>
 #include <QDialog>
@@ -32,9 +41,18 @@
 #include <QtLua/State>
 #include <QtLua/Console>
 
-#include "config.hh"
+#ifndef LUA_RELEASE
+# define LUA_RELEASE LUA_VERSION
+#endif
 
-#define QTLUA_COPYRIGHT "QtLua " PACKAGE_VERSION " Copyright (C) 2008-2011, Alexandre Becoulet"
+#ifndef LUAJIT_VERSION
+# define QTLUA_USING "(using Qt " QT_VERSION_STR " and " LUA_RELEASE ")"
+#else
+# define QTLUA_USING "(using Qt " QT_VERSION_STR " and " LUA_RELEASE ", " LUAJIT_VERSION ")"
+#endif
+
+#define QTLUA_COPYRIGHT "QtLua " PACKAGE_VERSION " " QTLUA_USING "\n" \
+                        "Copyright (C) 2008-2013, Alexandre Becoulet"
 
 int main(int argc, char *argv[])
 {
@@ -48,9 +66,10 @@ int main(int argc, char *argv[])
     bool execute = interactive;
 
     QtLua::State state;
+    state.enable_qdebug_print();
     state.openlib(QtLua::AllLibs);
 
-    state["app"] = QtLua::Value(state, &app, false);
+    state["app"] = QtLua::Value(&state, &app, false, false);
 
     for (int i = 1; i < argc; i++)
       {
@@ -80,6 +99,10 @@ int main(int argc, char *argv[])
 	      throw QtLua::String("Unable to open `%' file.").arg(argv[i]);
 
 	    execute = true;
+
+	    if(!file.readLine().startsWith("#!"))
+	      file.seek(0);
+
 	    state.exec_chunk(file);
 	  }
       }
@@ -97,7 +120,7 @@ int main(int argc, char *argv[])
 		&state, SLOT(fill_completion_list(const QString &, QStringList &, int &)));
 
 	QObject::connect(&state, SIGNAL(output(const QString&)),
-		console, SLOT(print(const QString&)));
+			 console, SLOT(print(const QString&)));
 
 	console->print(QTLUA_COPYRIGHT "\n");
 	console->print("You may type: help(), list() and use TAB completion.\n");

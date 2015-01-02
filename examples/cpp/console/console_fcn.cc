@@ -24,6 +24,15 @@
 
 #include <QtLua/Function>
 
+QTLUA_FUNCTION(fcn, "Useless function",
+	       "Use this function to perform no operation.")
+{
+  // This function excepts at least 1 Number argument 
+  meta_call_check_args(args, 1, 0, QtLua::Value::TNumber);
+
+  return QtLua::Value::List();
+}
+
 MainWindow::MainWindow()
   : QMainWindow()
 {
@@ -41,32 +50,13 @@ MainWindow::MainWindow()
   connect(state, SIGNAL(output(const QString&)),
 	  console, SLOT(print(const QString&)));
 
-  // Add a function
+  QTLUA_FUNCTION_REGISTER(state, , fcn);
+}
 
-  static class Fcn : public QtLua::Function
-  {
-    QtLua::Value::List meta_call(QtLua::State &ls, const QtLua::Value::List &args)
-    {
-      // This function excepts at least 1 Number argument 
-      meta_call_check_args(args, 1, 0, QtLua::Value::TNumber);
-
-      return QtLua::Value::List();
-    }
-
-    QtLua::String get_description() const
-    {
-      return "Useless function";
-    }
-
-    QtLua::String get_help() const
-    {
-      return "Use this function to perform no operation.";
-    }
-
-  } fcn;
-
-  fcn.register_(*state, "fcn");
-
+MainWindow::~MainWindow()
+{
+  delete console;
+  delete state;
 }
 
 int main(int argc, char *argv[])

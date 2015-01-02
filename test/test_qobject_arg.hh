@@ -22,6 +22,7 @@
 #include <QtLua/Value>
 #include <QtLua/UserData>
 
+#include <QDebug>
 #include <QObject>
 
 using namespace QtLua;
@@ -35,21 +36,39 @@ public:
   {
   }
 
-  void send(Ref<UserData> ud)
+#if QT_VERSION >= 0x040500
+  Q_INVOKABLE
+#endif
+  MyObjectUD(int num, QObject *parent)
+    : QObject(parent)
+  {
+    assert(num == 42);
+    assert(!parent);
+  }
+
+  void send(QtLua::UserData::ptr ud)
   {
     emit ud_arg(ud);
   }
 
-  Ref<UserData> _ud;
+#if QT_VERSION >= 0x040500
+  Q_INVOKABLE
+  double foo(double a)
+  {
+    return a * 42;
+  }
+#endif
+
+  QtLua::UserData::ptr _ud;
 
  public slots:
-  void ud_slot(Ref<UserData> ud)
+  void ud_slot(QtLua::UserData::ptr ud)
   {
     _ud = ud;
   }
 
  signals:
-  void ud_arg(Ref<UserData> ud);
+  void ud_arg(QtLua::UserData::ptr ud);
 
 };
 
@@ -60,7 +79,7 @@ struct MyData : public UserData
   {
   }
 
-  Value meta_index(State &ls, const Value &key)
+  Value meta_index(State *ls, const Value &key)
   {
     return Value(ls, _data);
   }

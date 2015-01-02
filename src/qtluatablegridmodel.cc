@@ -18,15 +18,25 @@
 
 */
 
-#include <QMessageBox>
+#include <QDebug>
+#include <QTableView>
+
 #include <QtLua/TableGridModel>
+#include <QtLua/ItemViewDialog>
 
 namespace QtLua {
+
+#define QTLUA_PROTECT(...)					\
+  try {								\
+    __VA_ARGS__;						\
+  } catch (const String &e) {					\
+    qDebug() << "TableGridModel::" << __func__ << ": " << e;	\
+  }
 
   void TableGridModel::check_state() const
   {
     if (!_st)
-      throw String("Can't use QtLua::TableGridModel without associated QtLua::State object");
+      QTLUA_THROW(TableGridModel, "The associated State object has been destroyed.");
   }
 
   TableGridModel::TableGridModel(const Value &table, Attributes attr,
@@ -88,18 +98,18 @@ namespace QtLua {
   {
     check_state();
 
-    Value first(*_st);
+    Value first(_st);
 
     try {
       if (_attr & NumKeysRows)
 	{
-	  first = _table[1];
+	  first = _table.at(1);
 	}
       else
 	{
 	  if (_row_keys.empty())
 	    return;
-	  first = _table[_row_keys[0]];
+	  first = _table.at(_row_keys[0]);
 	}
 
       if (_attr & NumKeysCols)
@@ -147,7 +157,7 @@ namespace QtLua {
     check_state();
 
     _attr &= ~NumKeysRows;
-    _row_keys.push_back(Value(*_st, k));
+    _row_keys.push_back(Value(_st, k));
   }
 
   void TableGridModel::add_column_key(const Value &k)
@@ -163,7 +173,7 @@ namespace QtLua {
     check_state();
 
     _attr &= ~NumKeysCols;
-    _col_keys.push_back(Value(*_st, k));
+    _col_keys.push_back(Value(_st, k));
   }
 
   QModelIndex TableGridModel::index(int row, int column, const QModelIndex &parent) const
@@ -177,7 +187,7 @@ namespace QtLua {
     if ((_attr & RowColSwap ? row : column) >= column_count())
       return QModelIndex();
 
-    return createIndex(row, column, 0);
+    return createIndex(row, column, (void*)0);
   }
 
   QModelIndex TableGridModel::parent(const QModelIndex &index) const
@@ -245,9 +255,9 @@ namespace QtLua {
 	  goto bound_err;
 
 	if (_attr & NumKeysCols)
-	  return ValueRef(_table[row + 1], col + 1);
+	  return ValueRef(_table.at(row + 1), col + 1);
 	else
-	  return ValueRef(_table[row + 1], _col_keys[col]);
+	  return ValueRef(_table.at(row + 1), _col_keys[col]);
       }
     else
       {
@@ -255,13 +265,13 @@ namespace QtLua {
 	  goto bound_err;
 
 	if (_attr & NumKeysCols)
-	  return ValueRef(_table[_row_keys[row]], col + 1);
+	  return ValueRef(_table.at(_row_keys[row]), col + 1);
 	else
-	  return ValueRef(_table[_row_keys[row]], _col_keys[col]);
+	  return ValueRef(_table.at(_row_keys[row]), _col_keys[col]);
       }
 
   bound_err:
-    throw String("invalid table index for QtLua::TableGridModel access");
+    QTLUA_THROW(QtLua::TableGridModel, "Index out of bounds (row %, column %).", .arg(row).arg(col));
   }
 
   QVariant TableGridModel::data(const QModelIndex &index, int role) const
@@ -273,7 +283,8 @@ namespace QtLua {
       {
       case Qt::DisplayRole:
 	try {
-	  return QVariant(get_value_ref(index).to_string_p(!(_attr & UnquoteValues)));
+	  return QVariant(get_value_ref(index).value()
+			  .to_string_p(!(_attr & UnquoteValues)));
 	} catch (const String &e) {
 	  return QVariant();	  
 	}
@@ -285,33 +296,23 @@ namespace QtLua {
 
   bool TableGridModel::set_value_ref(const ValueRef &ref, const QByteArray &input)
   {
-    Value::ValueType oldtype = ref.type();
-
     try {
+      Value::ValueType oldtype = ref.value().type();
       Value newvalue(_st->eval_expr(_attr & EditLuaEval, input));
       Value::ValueType newtype = newvalue.type();
-
-      // convert to string type when enforced
-      if ((_attr & EditFixedType) &&
-	  oldtype == Value::TString &&
-	  newtype != Value::TString)
-	{
-	  newvalue = newvalue.to_string_p(false);
-	  newtype = Value::TString;
-	}
 
       // check type change
       if ((_attr & EditFixedType) &&
 	  (oldtype != Value::TNil) && (oldtype != newtype))
-	throw String("% value type must be preserved.").arg(Value::type_name(oldtype));
+	QTLUA_THROW(TableGridModel, "The entry value type is `%' and can not be changed.",
+		    .arg(Value::type_name(oldtype)));
 
       ref = newvalue;
 
       return true;
 
     } catch (const String &s) {
-      QMessageBox::critical(0, "Error", QString("Value update error: ") + s.to_qstring());
-
+      emit edit_error(QString("Value update error: ") + s.to_qstring());
       return false;
     }
   }
@@ -321,17 +322,13 @@ namespace QtLua {
     if (!index.isValid() || !_st)
       return false;
 
-    if (role != Qt::EditRole)
+    if (role != Qt::EditRole || !value.canConvert(QVariant::ByteArray))
       return false;
 
-    if (!value.canConvert(QVariant::ByteArray))
-      return false;
-
-    try {
-      return set_value_ref(get_value_ref(index), value.toByteArray());
-    } catch (const String &e) {
-      return false;
-    }
+    bool changed = set_value_ref(get_value_ref(index), value.toByteArray());
+    if (changed)
+      emit dataChanged(index, index);
+    return changed;
   }
 
   QVariant TableGridModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -383,24 +380,23 @@ namespace QtLua {
 	  orientation = Qt::Vertical;
       }
 
-    try {
+    switch (orientation)
+      {
+      case Qt::Vertical: {
+	bool changed;
+	if (_attr & NumKeysRows)
+	  changed = set_value_ref(ValueRef(_table, section + 1), value.toByteArray());
+	else
+	  changed = set_value_ref(ValueRef(_table, _row_keys[section]), value.toByteArray());
+	if (changed)
+	  emit headerDataChanged(orientation, section, section);
+	return changed;
+      }
 
-      switch (orientation)
-	{
-	case Qt::Vertical:
-	  if (_attr & NumKeysRows)
-	    return set_value_ref(ValueRef(_table, section + 1), value.toByteArray());
-	  else
-	    return set_value_ref(ValueRef(_table, _row_keys[section]), value.toByteArray());
-
-	case Qt::Horizontal:
-	  // Not implemented yet
-	  break;
-	}
-
-    } catch (const String &e) {
-      return false;
-    }
+      case Qt::Horizontal:
+	// Not implemented yet
+	break;
+      }
 
     return false;
   }
@@ -477,21 +473,12 @@ namespace QtLua {
 
     if (_attr & NumKeysRows)
       {
-	int i;
-
-	// shift all tail rows
-	for (i = row + 1; i <= _num_row_count - count; i++)
-	  QTLUA_PROTECT(_table[i] = _table[i + count]);
-
-	// remove tail keys
-	for (; i <= _num_row_count; i++)
-	  QTLUA_PROTECT(_table[i] = Value(*_st));
-
+	QTLUA_PROTECT(_table.table_shift(row + 1, -count, _num_row_count));
 	_num_row_count -= count;
       }
     else
       {
-	QTLUA_PROTECT(_table[_row_keys[row]] = Value(*_st));
+	QTLUA_PROTECT(_table[_row_keys[row]] = Value(_st));
 	_row_keys.removeAt(row);
       }
 
@@ -503,9 +490,56 @@ namespace QtLua {
     return true;
   }
 
-  Value TableGridModel::new_row_table(State &st) const
+  Value TableGridModel::new_cell_value(State *st, int row, int col) const
   {
-    return Value(st, Value::TTable);
+#if 0
+    QString s;
+    s.sprintf("%i,%i", row, col);
+    return Value(st, s);
+#endif
+    return Value(st);
+  }
+
+  Value TableGridModel::new_row_table(State *st, int row) const
+  {
+    Value t(Value::new_table(st));
+
+    if (_attr & NumKeysCols)
+      {
+	for (int i = 0; i < _num_col_count; i++)
+	  t[i + 1] = new_cell_value(st, row, i);
+      }
+    else
+      {
+	for (int i = 0; i < _col_keys.size(); i++)
+	  t[_col_keys[i]] = new_cell_value(st, row, i);
+      }
+
+    return t;
+  }
+
+  Value TableGridModel::new_row_key(State *st, int row) const
+  {
+    int k = row;
+
+    // find an unused row key
+    bool done;
+    do {
+      done = true;
+      foreach (const Value &v, _row_keys)
+	{
+	  QTLUA_PROTECT({
+	      if (v.to_integer() == k)
+		{
+		  k++;
+		  done = false;
+		  break;
+		}
+	    });
+	}
+    } while (!done);
+
+    return Value(st, k);
   }
 
   bool TableGridModel::insert_rows(int row, int count, const QModelIndex &parent)
@@ -524,29 +558,18 @@ namespace QtLua {
     if (_attr & NumKeysRows)
       {
 	// shift all tail rows
-	for (int i = _num_row_count; i > row; i--)
-	  QTLUA_PROTECT(_table[i + count] = _table[i]);
-
-	// add new nested tables for rows
-	for (int i = row + 1; i <= row + count; i++)
-	  QTLUA_PROTECT(_table[i] = new_row_table(*_st));
-
+	QTLUA_PROTECT(_table.table_shift(row + 1, count, new_row_table(_st, row), _num_row_count));
 	_num_row_count += count;
       }
     else
       {
 	for (int i = 0; i < count; i++)
 	  {
-	    int k = row + 1;
-
-	    // find nil key
-	    QTLUA_PROTECT(
-			  for (; !_table[k].is_nil(); k++)
-			    ;
-			  );
-
-	    _row_keys.insert(row + i, Value(*_st, k));
-	    QTLUA_PROTECT(_table[k] = new_row_table(*_st));
+	    QTLUA_PROTECT({
+		Value k(new_row_key(_st, row + i + 1));
+		_row_keys.insert(row + i, k);
+		_table[k] = new_row_table(_st, row);
+	      });
 	  }
       }
 
@@ -558,16 +581,173 @@ namespace QtLua {
     return true;
   }
 
-  bool TableGridModel::remove_columns(int row, int count, const QModelIndex &parent)
+  bool TableGridModel::remove_columns(int col, int count, const QModelIndex &parent)
   { 
-    // FIXME not implemented yet
-    return false;
+    if (!(_attr & EditRemoveCol))
+      return false;
+
+    if (parent.isValid())
+      return false;
+
+    if (_attr & RowColSwap)
+      beginRemoveRows(parent, col, col + count - 1);
+    else
+      beginRemoveColumns(parent, col, col + count - 1);
+
+    if (_attr & NumKeysCols)
+      {
+	if (_attr & NumKeysRows)
+	  {
+	    for (int i = 1; i <= _num_row_count; i++)
+	      QTLUA_PROTECT(_table[i].table_shift(col + 1, -count, _num_col_count));
+	  }
+	else
+	  {
+	    foreach (const Value &v, _row_keys)
+	      QTLUA_PROTECT(_table[v].table_shift(col + 1, -count, _num_col_count));
+	  }
+	_num_col_count -= count;
+      }
+    else
+      {
+	if (_attr & NumKeysRows)
+	  {
+	    for (int i = 1; i <= _num_row_count; i++)
+	      QTLUA_PROTECT(_table[i][_col_keys[col]] = Value(_st));
+	  }
+	else
+	  {
+	    foreach (const Value &v, _row_keys)
+	      QTLUA_PROTECT(_table[v][_col_keys[col]] = Value(_st));
+	  }
+	_col_keys.removeAt(col);
+      }
+
+    if (_attr & RowColSwap)
+      endRemoveRows();
+    else
+      endRemoveColumns();
+
+    return true;
   }
 
-  bool TableGridModel::insert_columns(int row, int count, const QModelIndex &parent)
-  { 
-    // FIXME not implemented yet
-    return false;
+  Value TableGridModel::new_column_key(State *st, int col) const
+  {
+    int k = col;
+
+    // find an unused column key
+    bool done;
+    do {
+      done = true;
+      foreach (const Value &v, _col_keys)
+	{
+	  QTLUA_PROTECT({
+	      if (v.to_integer() == k)
+		{
+		  k++;
+		  done = false;
+		  break;
+		}
+	    });
+	}
+    } while (!done);
+
+    return Value(st, k);
+  }
+
+  bool TableGridModel::insert_columns(int col, int count, const QModelIndex &parent)
+  {
+    if (!(_attr & EditInsertCol))
+      return false;
+
+    if (parent.isValid())
+      return false;
+
+    if (_attr & RowColSwap)
+      beginInsertRows(parent, col, col + count - 1);
+    else
+      beginInsertColumns(parent, col, col + count - 1);
+
+    if (_attr & NumKeysCols)
+      {
+	if (_attr & NumKeysRows)
+	  {
+	    for (int i = 0; i < _num_row_count; i++)
+	      QTLUA_PROTECT(_table[i + 1].table_shift(col + 1, count,
+			       new_cell_value(_st, i, col), _num_col_count));
+	  }
+	else
+	  {
+	    for (int i = 0; i < _row_keys.size(); i++)
+	      QTLUA_PROTECT(_table[_row_keys[i]].table_shift(col + 1, count,
+                               new_cell_value(_st, i, col), _num_col_count));
+	  }
+
+	_num_col_count += count;
+      }
+    else
+      {
+	for (int i = 0; i < count; i++)
+	  {
+	    QTLUA_PROTECT(_col_keys.insert(col + i, new_column_key(_st, col + i + 1)));
+
+	    if (_attr & NumKeysRows)
+	      {
+		for (int j = 0; j < _num_row_count; j++)
+		  QTLUA_PROTECT(_table[j + 1][_col_keys[col + i]] = new_cell_value(_st, j, col));
+	      }
+	    else
+	      {
+		for (int j = 0; j < _row_keys.size(); j++)
+		  QTLUA_PROTECT(_table[_row_keys[j]][_col_keys[col + i]] = new_cell_value(_st, j, col));
+	      }
+	  }
+      }
+
+    if (_attr & RowColSwap)
+      endInsertRows();
+    else
+      endInsertColumns();
+
+    return true;
+  }
+
+  void TableGridModel::table_dialog(QWidget *parent, const QString &title, const Value &table, 
+				    TableGridModel::Attributes attr,
+				    const Value::List *colkeys, const Value::List *rowkeys)
+  {
+    TableGridModel *model = new TableGridModel(table, attr, false, 0);
+
+    if (rowkeys)
+      foreach(const Value &k, *rowkeys)
+	model->add_row_key(k);
+    else
+      model->fetch_all_row_keys();
+
+    if (colkeys)
+      foreach(const Value &k, *colkeys)
+	model->add_column_key(k);
+    else
+      model->fetch_all_column_keys();
+
+    QTableView *view = new QTableView();
+
+    ItemViewDialog::EditActions a = 0;
+
+    if (attr & Editable)
+      a |= ItemViewDialog::EditData;
+    if (attr & EditInsertRow)
+      a |= ItemViewDialog::EditInsertRow | ItemViewDialog::EditInsertRowAfter;
+    if (attr & EditInsertRow)
+      a |= ItemViewDialog::EditRemoveRow;
+    if (attr & EditInsertCol)
+      a |= ItemViewDialog::EditInsertColumn | ItemViewDialog::EditInsertColumnAfter;
+    if (attr & EditRemoveCol)
+      a |= ItemViewDialog::EditRemoveColumn;
+
+    ItemViewDialog d(a, model, view, parent);
+    d.setWindowTitle(title);
+    d.exec();
   }
 
 }

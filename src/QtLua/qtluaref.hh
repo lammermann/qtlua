@@ -22,46 +22,15 @@
 #ifndef QTLUAREF_HH_
 #define QTLUAREF_HH_
 
-#include <QtGlobal> // for Q_UNUSED
-
-#if QT_VERSION >= 0x040400
-# include <QAtomicInt>
-#else
-# warning QAtomicInt is not available before Qt4.4, QtLua::Ref will not be thread-safe
+#ifndef __GNUC__
+# warning GCC atomic operations are not available, QtLua::Ref will not be thread-safe
 #endif
 
+#include <QtGlobal> // for Q_UNUSED
+#include <stdint.h>
 #include <cassert>
 
 namespace QtLua {
-
-#ifndef QTLUA_NO_DEBUG
-
-  /**
-   * @short Guard class, assert allocated RefObj based objects get free'd
-   * @module {Base}
-   * @internal
-   * @header QtLua/Ref
-   */
-
-  template <class X>
-  struct RefDebug
-  {
-    RefDebug()
-    {
-      _alloc_count = 0;
-    }
-
-    ~RefDebug()
-    {
-      assert(_alloc_count == 0 || !"Some allocated objects are not free'd yet");
-    }
-
-    static int _alloc_count;
-  };
-
-  template <class X>
-  int RefDebug<X>::_alloc_count;
-#endif
 
   template <class X>
   class Refobj;
@@ -185,6 +154,38 @@ namespace QtLua {
 	_obj->_inc();
     }
 
+#ifdef Q_COMPILER_RVALUE_REFS
+    /** Construct a const Ref from non const Ref. */
+    Ref(Ref<Xnoconst, Xnoconst> && r)
+      : _obj(r._obj)
+    {
+      r._obj = 0;
+    }
+
+    /** Construct a const Ref from const Ref. */
+    Ref(Ref<const Xnoconst, Xnoconst> && r)
+      : _obj(r._obj)
+    {
+      r._obj = 0;
+    }
+
+    /** Construct a const Ref from derived class Ref. */
+    template <class T>
+    Ref(Ref<T, T> && r)
+      : _obj(r._obj)
+    {
+      r._obj = 0;
+    }
+
+    /** Construct a const Ref from derived class const Ref. */
+    template <class T>
+    Ref(Ref<const T, T> && r)
+      : _obj(r._obj)
+    {
+      r._obj = 0;
+    }
+#endif
+
     /** Construct a Ref which points to specified object. */
     Ref(X & obj)
       : _obj(&obj)
@@ -200,19 +201,35 @@ namespace QtLua {
      */
     static Ref allocated(X * obj)
     {
-#ifndef QTLUA_NO_DEBUG
-      RefDebug<X>::_alloc_count++;
-#endif
-      obj->_qtlua_Ref_delete = true;
+      obj->ref_allocated();
       return Ref(obj);
     }
 
     /** Initialize Ref from Ref */
     Ref & operator=(const Ref &r)
     {
-      *this = *r._obj;
+      X *tmp = _obj;
+      _obj = 0;
+      if (tmp)
+	tmp->_drop();
+      _obj = r._obj;
+      if (_obj)
+	_obj->_inc();
       return *this;
     }
+
+#ifdef Q_COMPILER_RVALUE_REFS
+    Ref & operator=(Ref &&r)
+    {
+      X *tmp = _obj;
+      _obj = 0;
+      if (tmp)
+	tmp->_drop();
+      _obj = r._obj;
+      r._obj = 0;
+      return *this;
+    }
+#endif
 
     /** Initialize Ref from object Reference */
     Ref & operator=(X & obj)
@@ -222,8 +239,8 @@ namespace QtLua {
       if (tmp)
 	tmp->_drop();
       _obj = &obj;
-      if (_obj)
-	_obj->_inc();
+      assert(_obj);
+      _obj->_inc();
       return *this;
     }
 
@@ -253,6 +270,13 @@ namespace QtLua {
     Ref<const T, T> staticcast_const() const
     {
       return Ref<const T, T>(static_cast<const T*>(_obj));
+    }
+
+    /** Const cast const Ref to Ref of given type */
+    template <class T>
+    Ref<T, T> constcast() const
+    {
+      return Ref<T, T>(const_cast<T*>(_obj));
     }
 
     /** Drop a Ref */
@@ -300,7 +324,7 @@ namespace QtLua {
     /** Get object Reference count */
     int count() const
     {
-      return _obj ? (int)_obj->_qtlua_Ref_count : 0;
+      return _obj ? _obj->ref_count() : 0;
     }
 
     /** Test if pointed ojects are the same */
@@ -327,128 +351,169 @@ namespace QtLua {
     X *_obj;
   };
 
-
   /**
    * @short Referenced objects base class
    * @header QtLua/Ref
    * @module {Base}
    * @internal
-   *
-   * This template class must be a base class for any class which may
-   * be referenced by the @ref QtLua::Ref smart pointer.
-   * @see QtLua::UserData.
    */
-  template <class X>
-  class Refobj
+  class RefobjBase
   {
     template <class, class> friend class Ref;
+    template <class> friend class RefObj;
+    /** @internal Reference counter value */
+    uintptr_t _state;
 
-  public:
-    QTLUA_REFTYPE(X);
-
-    Refobj()
-      : _qtlua_Ref_count(0),
-	_qtlua_Ref_delete(false)
-    {
-    }
-
-    Refobj(const Refobj &r)
-      : _qtlua_Ref_count(0),
-	_qtlua_Ref_delete(false)
-    {
-    }
-
-    Refobj & operator=(const Refobj &r)
-    {
-      assert(_qtlua_Ref_count == 0 || !"Can not overwrite object with live References");
-      return *this;
-    }
-
-    virtual ~Refobj()
-    {
-      assert(_qtlua_Ref_count == 0 || !"Can not destruct object with live References");
-    }
+    static const uintptr_t REF_DELETE = 1;
+    static const uintptr_t REF_DELEGATE = 2;
+    static const uintptr_t REF_ONE = 4;
+    static const uintptr_t REF_MASK = ~3;
 
   protected:
+
+    virtual ~RefobjBase()
+    {
+    }
+
+    RefobjBase()
+      : _state(0)
+    {
+    }
 
     /** @internal */
     void _inc() const
     {
-      Refobj<X> *y = const_cast<Refobj<X>*>(this);
-#if 0
-      y->ref_inc(++y->_qtlua_Ref_count);
-#endif
-#if QT_VERSION >= 0x040400
-      y->_qtlua_Ref_count.fetchAndAddOrdered(1);
+      RefobjBase *y = const_cast<RefobjBase*>(this);
+
+      while (y->_state & REF_DELEGATE)
+	y = (RefobjBase*)(y->_state & REF_MASK);
+
+#ifdef __GNUC__
+      __sync_add_and_fetch(&y->_state, REF_ONE);
 #else
-      ++y->_qtlua_Ref_count;
+      y->_state += REF_ONE;
 #endif
     }
 
     /** @internal */
     void _drop() const
     {
-      Refobj<X> *y = const_cast<Refobj<X>*>(this);
-#if QT_VERSION >= 0x040400
-      int count = y->_qtlua_Ref_count.fetchAndAddOrdered(-1) - 1;
+      RefobjBase *y = const_cast<RefobjBase*>(this);
+
+      while (y->_state & REF_DELEGATE)
+	y = (RefobjBase*)(y->_state & REF_MASK);
+
+#ifdef __GNUC__
+      intptr_t count = __sync_sub_and_fetch(&y->_state, REF_ONE) >> 2;
 #else
-      int count = --y->_qtlua_Ref_count;
+      y->_state -= REF_ONE;
+      intptr_t count = y->_state >> 2;
 #endif
+
       assert(count >= 0);
 
-      if (count == 0 && _qtlua_Ref_delete)
+      if (y->_state & REF_DELETE)
 	{
-#ifndef QTLUA_NO_DEBUG
-	  RefDebug<X>::_alloc_count--;
-#endif
-	  delete this;
-	  return;
+	  switch (count)
+	    {
+	    case 0:
+	      delete y;
+	      return;
+	    case 1:
+	      y->ref_single();
+	      break;
+	    }
 	}
-
-      y->ref_drop(count);
     }
 
-#if 0
-    /* This function is called when reference count has just increased.
-
-	@param Count new reference count.
-    */
-
-    virtual void ref_inc(int count)
+    void ref_allocated()
     {
-      Q_UNUSED(count);
+      assert(!(_state & REF_DELEGATE));
+      _state |= REF_DELETE;
     }
-#endif
 
-    /** This functions is called when reference count has just decreased.
-
-	@param Count new reference count.
-    */
-    virtual void ref_drop(int count)
+    /** This function is called when a dynamically allocated object
+	has its reference count decreased to 1. */
+    virtual void ref_single()
     {
-      Q_UNUSED(count);
+    }
+
+  public:
+
+    /** This function set the passed object as references counter in
+	place of @tt this object. The reference counter of @tt this
+	object is disabled and all @ref Ref pointing to @tt this
+	contribute to reference counter of specified object instead.
+
+	This function must be used when an object is instantiated as a
+	member of an other object so that references to the member
+	object are used to keep the container object alive. */
+    void ref_delegate(RefobjBase *o)
+    {
+      while (o->_state & REF_DELEGATE)
+	o = (RefobjBase*)(o->_state & REF_MASK);
+
+      assert(!_state && !((uintptr_t)o & 3));
+      _state = REF_DELEGATE | (uintptr_t)o;
+    }
+
+    /** Check if @ref ref_delegate has been used on this object. */
+    bool ref_is_delegate() const
+    {
+      const RefobjBase *y = this;
+
+      return (y->_state & REF_DELEGATE) != 0;
     }
 
     /** Get object current reference count */
     int ref_count() const
     {
-      return _qtlua_Ref_count;
+      const RefobjBase *y = this;
+
+      while (y->_state & REF_DELEGATE)
+	y = (RefobjBase*)(y->_state & REF_MASK);
+
+      return y->_state >> 2;
+    }
+  };
+
+  /**
+   * @short Referenced objects template base class
+   * @header QtLua/Ref
+   * @module {Base}
+   *
+   * This template class must be a base class for any class which may
+   * be referenced by the @ref QtLua::Ref smart pointer.
+   * @see QtLua::UserData.
+   */
+  template <class X>
+  class Refobj : public RefobjBase
+  {
+  public:
+    QTLUA_REFTYPE(X);
+
+    Refobj()
+      : RefobjBase()
+    {
     }
 
-    /** @internal */
-    typedef X _qtlua_Ref_base_type;
+    Refobj(const Refobj &r)
+      : RefobjBase()
+    {
+    }
 
-#if QT_VERSION >= 0x040400
-    /** @internal Reference counter value */
-    QAtomicInt _qtlua_Ref_count;
-#else
-    /** @internal Reference counter value */
-    int _qtlua_Ref_count;
-#endif
+    Refobj & operator=(const Refobj &r)
+    {
+      assert(ref_count() == 0 || !"Can not overwrite object with live references");
+      return *this;
+    }
 
-    /** @internal delete object pointer when refcount reach zero */
-    bool _qtlua_Ref_delete;
+    ~Refobj()
+    {
+      assert(ref_count() == 0 || !"Can not destruct object with live references");
+    }
   };
+
 
 }
 

@@ -52,10 +52,16 @@ namespace QtLua {
 	int index = mo->methodOffset() + i;
 	QMetaMethod mm = mo->method(index);
 
+#if QT_VERSION < 0x050000
 	if (!mm.signature())
 	  continue;
-
 	String signature(mm.signature());
+#else
+	String signature(mm.methodSignature());
+	if (signature.isNull())
+	  continue;	  
+#endif
+
 	String name(signature.constData(), signature.indexOf('('));
 
 	while (existing.contains(name) || _member_cache.contains(name))
@@ -110,6 +116,27 @@ namespace QtLua {
       ;
 
     return m;
+  }
+
+  int MetaCache::get_enum_value(const String &name) const
+  {
+    for (const QMetaObject *mo = _mo; mo; mo = mo->superClass())
+      {
+	for (int i = 0; i < mo->enumeratorCount(); i++)
+	  {
+	    int index = mo->enumeratorOffset() + i;
+	    QMetaEnum me = mo->enumerator(index);
+
+	    if (!me.isValid())
+	      continue;
+
+	    int value = me.keyToValue(name);
+	    if (value >= 0)
+	      return value;
+	  }
+      }
+
+    return -1;
   }
 
   MetaCache & MetaCache::get_meta(const QMetaObject *mo)

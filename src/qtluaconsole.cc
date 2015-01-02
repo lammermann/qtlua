@@ -38,15 +38,12 @@ Console::Console(QWidget *parent, const QString &prompt, const QStringList &hist
   : QTextEdit(parent),
     _prompt(prompt),
     _history(history),
-    _complete_re("[_.:a-zA-Z0-9]+$"),
-    _text_width(80),
-    _text_height(25)
+    _complete_re("[_.:a-zA-Z0-9]+$")
 {
-  init();
-}
+  _text_width = 80;
+  _text_height = 25;
+  _scroll_back = 1000;
 
-void Console::init()
-{
   _fmt_normal.setFontFamily("monospace");
   _fmt_normal.setFontFixedPitch(true);
   _fmt_normal.setFontItalic(false);
@@ -59,6 +56,7 @@ void Console::init()
   _history_ndx = _history.size();
   _history_size = 100;
   _history.append("");
+  _print_timer = 0;
 
   display_prompt();
 }
@@ -74,7 +72,7 @@ void Console::display_prompt()
   setTextColor(Qt::blue);
   insertPlainText(_prompt);
 
-  setTextColor(Qt::black);
+  setTextColor(palette().color(QPalette::Text));
   tc = textCursor();
   insertPlainText(" ");
 
@@ -294,7 +292,12 @@ void Console::action_key_complete()
 	  setTextColor(Qt::darkRed);
 	  insertPlainText(str + "\n");
 	}
-      setTextColor(Qt::black);
+      if (list.size() >= QTLUA_MAX_COMPLETION)
+	{
+	  setTextColor(Qt::darkBlue);
+	  insertPlainText("...too many entries...\n");
+	}
+      setTextColor(palette().color(QPalette::Text));
 
       // adjust cursor position variables
       tc = textCursor();
@@ -367,10 +370,18 @@ int Console::get_history_size() const
   return _history_size;
 }
 
+void Console::set_scroll_back(int scroll_back)
+{
+  _scroll_back = scroll_back;
+}
+
+int Console::get_scroll_back() const
+{
+  return _scroll_back;
+}
+
 void Console::action_key_enter()
 {
-  setUndoRedoEnabled(false);
-
   QTextCursor	tc = textCursor();
 
   // select function line
@@ -415,6 +426,8 @@ void Console::action_key_enter()
   if (!line.trimmed().isEmpty())
     emit line_validate(line);
 
+  document()->setMaximumBlockCount(_scroll_back);
+  document()->setMaximumBlockCount(0);
   setUndoRedoEnabled(true);
 }
 
@@ -650,6 +663,11 @@ void Console::keyPressEvent(QKeyEvent * e)
     }
 }
 
+void Console::mouseDoubleClickEvent(QMouseEvent *e)
+{
+  Q_UNUSED(e);
+}
+
 void Console::mousePressEvent(QMouseEvent *e)
 {
   QTextCursor		tc = textCursor();
@@ -688,11 +706,27 @@ void Console::mouseReleaseEvent(QMouseEvent *e)
 
 void Console::print(const QString &str)
 {
+  _print_buffer.append(str);
+  if (!_print_timer)
+    _print_timer = startTimer(0);
+}
+
+void Console::timerEvent(QTimerEvent *event)
+{
+  if (event->timerId() == _print_timer)
+    print_flush();
+}
+
+void Console::print_flush()
+{
+  if (_print_buffer.isEmpty())
+    return;
+
   int first = 0;
   int last;
   static QRegExp rx("\\0033\\[(\\d*)m");
 
-  setUndoRedoEnabled(false);
+  document()->setMaximumBlockCount(_scroll_back);
 
   // go before prompt and completion list
   QTextCursor tc = textCursor();
@@ -701,18 +735,26 @@ void Console::print(const QString &str)
   setTextCursor(tc);
 
   // insert text
-  setTextColor(Qt::black);
+  setTextColor(palette().color(QPalette::Text));
 
-  while ((last = str.indexOf(rx, first)) >= 0)
+  while ((last = _print_buffer.indexOf(rx, first)) >= 0)
     {
       if (last > first)
-	insertPlainText(str.mid(first, last - first));
+	insertPlainText(_print_buffer.mid(first, last - first));
       first = last + rx.matchedLength();
 
-      setTextColor((Qt::GlobalColor)(rx.cap(1).toUInt()));
+      unsigned int c = rx.cap(1).toUInt();
+      if (!c)
+	setTextColor(palette().color(QPalette::Text));
+      else
+	setTextColor((Qt::GlobalColor)c);
     }
 
-  insertPlainText(str.mid(first, str.size() - first));
+  insertPlainText(_print_buffer.mid(first, _print_buffer.size() - first));
+  _print_buffer.clear();
+
+  killTimer(_print_timer);
+  _print_timer = 0;
 
   // adjust cursor position variables
   tc = textCursor();
@@ -724,6 +766,7 @@ void Console::print(const QString &str)
   tc.setPosition(cur + len, QTextCursor::MoveAnchor);
   setTextCursor(tc);
 
+  document()->setMaximumBlockCount(0);
   setUndoRedoEnabled(true);
 }
 
