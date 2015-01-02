@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -81,7 +81,7 @@ class Value
     typedef std::forward_iterator_tag iterator_category;
 
     /** @internal */
-    inline iterator_(Ref<Iterator> i);
+    inline iterator_(const Ref<Iterator> &i);
     /** Create a non uninitialized iterator */
     inline iterator_();
     inline iterator_ & operator++();
@@ -110,7 +110,7 @@ public:
   struct iterator : public iterator_
   {
     /** @internal */
-    inline iterator(Ref<Iterator> i);
+    inline iterator(const Ref<Iterator> &i);
     /** Create an uninitialized @ref iterator. */
     inline iterator();
     /** Get modifiable reference to current entry value. */
@@ -133,7 +133,7 @@ public:
   struct const_iterator : public iterator_
   {
     /** @internal */
-    inline const_iterator(Ref<Iterator> i);
+    inline const_iterator(const Ref<Iterator> &i);
     /** Create from non const iterator */
     inline const_iterator(const iterator &i);
     /** Create a non uninitialized @ref const_iterator. */
@@ -163,6 +163,8 @@ public:
     inline List(const Value &v1, const Value &v2, const Value &v3, const Value &v4);
     inline List(const Value &v1, const Value &v2, const Value &v3, const Value &v4, const Value &v5);
     inline List(const Value &v1, const Value &v2, const Value &v3, const Value &v4, const Value &v5, const Value &v6);
+    /** Create value list from @ref QList of @ref Value objects */
+    inline List(const QList<Value> &list);
 
     /** Create value list from @ref QList content */
     template <typename X>
@@ -200,6 +202,31 @@ public:
     };
 
   /**
+   * Specify lua operations performed on lua values.
+   * @see support @see UserData::meta_operation @see UserData::support
+   */
+  enum Operation
+    {
+      OpAdd,      //< Lua add binary operator @tt +
+      OpSub,      //< Lua subtract binary operator @tt -
+      OpMul,      //< Lua multiply binary operator @tt *
+      OpDiv,      //< Lua divied binary operator @tt /
+      OpMod,      //< Lua modulo binary operator @tt %
+      OpPow,      //< Lua power binary operator @tt ^
+      OpUnm,      //< Lua negative unary operator @tt -
+      OpConcat,   //< Lua concatenation binary operator @tt ..
+      OpLen,      //< Lua length unary operator @tt #
+      OpEq,       //< Lua equal binary operator @tt ==
+      OpLt,       //< Lua less than binary operator @tt <
+      OpLe,       //< Lua less than or equal binary operator @tt <=
+
+      OpIndex, 	  //< Table index operation
+      OpNewindex, //< Table newindex operation
+      OpCall,     //< Function call operation
+      OpIterate,  //< Iteration operation
+    };
+
+  /**
    * @showcontent
    *
    * Boolean type used for Value constructor.
@@ -233,7 +260,7 @@ public:
    * reference to the @ref UserData object which will be dropped later
    * by the lua garbage collector.
    */
-  inline Value(const State &ls, Ref<UserData> ud);
+  inline Value(const State &ls, const Ref<UserData> &ud);
 
   /**
    * Create a wrapped @ref QObject lua value.
@@ -307,7 +334,7 @@ public:
   /** Assign a string to lua value. */
   Value & operator=(const String &str);
   /** Assign a userdata to lua value. */
-  Value & operator=(Ref<UserData> ud);
+  Value & operator=(const Ref<UserData> &ud);
   /**
    * Assign a QObject to lua value.
    * @xsee{QObject wrapping}
@@ -376,7 +403,7 @@ public:
 
   /** Convert any type to a string representation suitable for pretty
       printing. Never throw. */
-  String to_string_p() const;
+  String to_string_p(bool quote_string = true) const;
 
   /**
    * Create a @ref QList with elements from lua table. Table keys are
@@ -463,9 +490,20 @@ public:
   /** Get value raw lua type name. */
   String type_name() const;
 
+  /** Get value raw lua type name. */
+  static String type_name(ValueType t);
+
   /** Get value type name, if the value is a @ref UserData, the type
       name is extracted using the @ref UserData::get_type_name function. */
   String type_name_u() const;
+
+  /** Return the lua len of tables and strings. Return the result of
+      the @ref OpLen operation on @ref UserData objects or 0 if not
+      supported. */
+  int len() const;
+
+  /** Check given operation support. @see UserData::support */
+  bool support(Operation c) const;
 
   /** Compare lua values. @multiple */
   bool operator<(const Value &lv) const;
@@ -513,16 +551,17 @@ private:
   /** push value on lua stack. */
   virtual void push_value() const;
 
-  static String to_string_p(lua_State *st, int index);
+  static String to_string_p(lua_State *st, int index, bool quote_string);
 
   /** construct from value on lua stack. */
   Value(lua_State *st, int index);
+  static uint qHash(lua_State *st, int index);
 
   inline Value(lua_State *st);
   inline Value(lua_State *st, ValueType type);
   inline Value(lua_State *st, double n);
   inline Value(lua_State *st, const String &str);
-  inline Value(lua_State *st, Ref<UserData> ud);
+  inline Value(lua_State *st, const Ref<UserData> &ud);
   inline Value(lua_State *st, QObject *obj);
   void init_type_value(ValueType type);
 

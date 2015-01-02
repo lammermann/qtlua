@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -48,20 +48,42 @@ namespace QtLua {
 class Console : public QTextEdit
 {
   Q_OBJECT;
+  Q_PROPERTY(int history_size READ get_history_size WRITE set_history_size);
+  Q_PROPERTY(int text_width READ get_text_width WRITE set_text_width);
+  Q_PROPERTY(int text_height READ get_text_height WRITE set_text_height);
+  Q_PROPERTY(QString prompt READ get_prompt WRITE set_prompt);
 
 public:
 
-  /** Create a console widget. */
-  Console(QWidget *parent = 0);
+  /** Create a console widget and restore history */
+  Console(QWidget *parent = 0, const QString &prompt = QString("$"),
+	  const QStringList &history = QStringList());
 
   /** Set console prompt. */
-  void set_prompt(QString p);
+  void set_prompt(const QString &p);
+  /** Get console prompt. */
+  const QString & get_prompt() const;
 
-  /** Set history entry count. */
-  inline void set_history_size(int size);
+  /** Set console width in character count */
+  void set_text_width(int width);
+  /** Get console width in character count */
+  int get_text_width() const;
 
-  /** Get current history content. */
+  /** Set console height in character count */
+  void set_text_height(int height);
+  /** Get console height in character count */
+  int get_text_height() const;
+
+  /** Set console max history entries count */
+  void set_history_size(int history_size);
+  /** Get console max history entries count */
+  int get_history_size() const;
+
+  /** Get current history. */
   inline const QStringList & get_history() const;
+
+  /** Get current history. */
+  void set_history(const QStringList &h);
 
   /** Set Qt regular expression used to extract text before cursor to
     * pass to completion signal.
@@ -92,25 +114,32 @@ public slots:
 private:
 
   QTextCharFormat	_fmt_normal;
-  QTextCharFormat	_fmt_completion;
   int			_complete_start;
   int			_prompt_start;
   int			_line_start;
+  int			_mark;
   QString		_prompt;
   QStringList		_history;
   int			_history_ndx;
-  int			_history_max;
+  int			_history_size;
   int			_cursor_pos;
-  bool			_color_state;
   QRegExp		_complete_re;
+  int			_text_width;
+  int			_text_height;
 
+  QSize sizeHint() const;
+
+  void init();
   // Internal actions
   void action_key_complete();
   void action_key_enter();
   void action_history_up();
   void action_history_down();
+  void action_history_find(int direction);
   void display_prompt();
   void delete_completion_list();
+  void action_home();
+  void action_end();
 
   // Handle mouse events on console
   void mousePressEvent(QMouseEvent *e);

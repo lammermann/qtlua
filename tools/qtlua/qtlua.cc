@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,8 +11,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
+
+    Additional Terms 7.b of GPLv3 applies to this file: Requiring
+    preservation of specified reasonable legal notices or author
+    attributions in that material or in the Appropriate Legal Notices
+    displayed by works containing it;
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
 
@@ -24,6 +29,10 @@
 
 #include <QtLua/State>
 #include <QtLua/Console>
+
+#include "config.hh"
+
+#define QTLUA_COPYRIGHT "QtLua " PACKAGE_VERSION " Copyright (C) 2008-2010, Alexandre Becoulet"
 
 int main(int argc, char *argv[])
 {
@@ -39,7 +48,7 @@ int main(int argc, char *argv[])
 
     state["app"] = QtLua::Value(state, &app, false);
 
-    for (unsigned int i = 1; i < argc; i++)
+    for (int i = 1; i < argc; i++)
       {
 	QByteArray arg(argv[i]);
 
@@ -52,7 +61,8 @@ int main(int argc, char *argv[])
 	      }
 	    else
 	      {
-		std::cout
+		std::cerr
+		  << QTLUA_COPYRIGHT << std::endl
 		  << "usage: qtlua [options] luafiles ..." << std::endl
 		  << "  -i --interactive    show a lua console dialog" << std::endl;
 	      }
@@ -72,7 +82,7 @@ int main(int argc, char *argv[])
 
     if (interactive)
       {
-	QtLua::Console *console = new QtLua::Console();
+	QtLua::Console *console = new QtLua::Console(0, ">>");
 
 	QObject::connect(console, SIGNAL(line_validate(const QString&)),
 			 &state, SLOT(exec(const QString&)));
@@ -83,6 +93,7 @@ int main(int argc, char *argv[])
 	QObject::connect(&state, SIGNAL(output(const QString&)),
 		console, SLOT(print(const QString&)));
 
+	console->print(QTLUA_COPYRIGHT "\n");
 	console->show();
       }
 

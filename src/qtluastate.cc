@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -106,7 +106,7 @@ int State::lua_cmd_print(lua_State *st)
 
     for (int i = 1; i <= lua_gettop(st); i++)
       {
-	String s = Value::to_string_p(st, i);
+	String s = Value::to_string_p(st, i, true);
 	this_->output(s);
 	this_->output("\n");
 	qDebug("QtLua print:%s", s.constData());
@@ -155,7 +155,7 @@ int State::lua_cmd_list(lua_State *st)
     for (Value::const_iterator i = t.begin(); i != t.end(); i++)
       {
 	this_->output(QString("\033[18m") + i.value().type_name_u() + "\033[2m " +
-		      i.key().to_string_p() + " = " + i.value().to_string_p() + "\n");
+		      i.key().to_string_p(false) + " = " + i.value().to_string_p(true) + "\n");
       }
 
   } catch (String &e) {
@@ -239,18 +239,18 @@ int State::lua_meta_item_##n(lua_State *st)				\
   return lua_gettop(st) - x;						\
 }
 
-LUA_META_2OP_FUNC(add, UserData::OpAdd)
-LUA_META_2OP_FUNC(sub, UserData::OpSub)
-LUA_META_2OP_FUNC(mul, UserData::OpMul)
-LUA_META_2OP_FUNC(div, UserData::OpDiv)
-LUA_META_2OP_FUNC(mod, UserData::OpMod)
-LUA_META_2OP_FUNC(pow, UserData::OpPow)
-LUA_META_1OP_FUNC(unm, UserData::OpUnm)
-LUA_META_2OP_FUNC(concat, UserData::OpConcat)
-LUA_META_1OP_FUNC(len, UserData::OpLen)
-LUA_META_2OP_FUNC(eq, UserData::OpEq)
-LUA_META_2OP_FUNC(lt, UserData::OpLt)
-LUA_META_2OP_FUNC(le, UserData::OpLe)
+LUA_META_2OP_FUNC(add, Value::OpAdd)
+LUA_META_2OP_FUNC(sub, Value::OpSub)
+LUA_META_2OP_FUNC(mul, Value::OpMul)
+LUA_META_2OP_FUNC(div, Value::OpDiv)
+LUA_META_2OP_FUNC(mod, Value::OpMod)
+LUA_META_2OP_FUNC(pow, Value::OpPow)
+LUA_META_1OP_FUNC(unm, Value::OpUnm)
+LUA_META_2OP_FUNC(concat, Value::OpConcat)
+LUA_META_1OP_FUNC(len, Value::OpLen)
+LUA_META_2OP_FUNC(eq, Value::OpEq)
+LUA_META_2OP_FUNC(lt, Value::OpLt)
+LUA_META_2OP_FUNC(le, Value::OpLe)
 
 int State::lua_meta_item_index(lua_State *st)
 {
@@ -565,6 +565,38 @@ int State::lua_panic(lua_State *st)
   String err(lua_tostring(st, -1));
   lua_pop(st, 1);
   throw err;
+}
+
+Value State::eval_expr(bool use_lua, const String &expr)
+{
+  // Use lua to transform user input to lua value
+  if (use_lua)
+    {
+      Value::List res = exec_statements(String("return ") + expr);
+
+      if (res.empty())
+	throw String("lua expression `%' returned no value").arg(expr);
+
+      return res[0];
+    }
+
+    // Do not use lua, only handle string and number cases
+    else
+      {
+	bool ok = false;
+	double number = expr.toDouble(&ok);
+
+	if (ok)
+	  return Value(*this, number);
+	else
+	  {
+	    // exprip double quotes if any
+	    if (expr.size() > 1 && expr.startsWith('"') && expr.endsWith('"'))
+	      return Value(*this, String(expr.mid(1, expr.size() - 2)));
+	    else
+	      return Value(*this, expr);
+	  }
+      }
 }
 
 struct lua_reader_state_s

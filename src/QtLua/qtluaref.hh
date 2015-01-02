@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -231,6 +231,20 @@ namespace QtLua {
     Ref<const T, T> dynamiccast_const() const
     {
       return Ref<const T, T>(dynamic_cast<const T*>(_obj));
+    }
+
+    /** Static cast Ref to Ref of given type */
+    template <class T>
+    Ref<T, T> staticcast() const
+    {
+      return Ref<T, T>(static_cast<T*>(_obj));
+    }
+
+    /** Static cast Ref to const Ref of given type */
+    template <class T>
+    Ref<const T, T> staticcast_const() const
+    {
+      return Ref<const T, T>(static_cast<const T*>(_obj));
     }
 
     /** Drop a Ref */

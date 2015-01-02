@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -33,7 +33,7 @@ namespace QtLua {
 class State;
 
   /**
-   * @short Qt Model/View model class
+   * @short Qt Model/View item model class
    * @header QtLua/ItemModel
    * @module {Model/View}
    *
@@ -47,7 +47,9 @@ class State;
    * lua immediately update to the Qt view widget.
    *
    * Usage example:
-   * @example examples/cpp/mvc/treeview.cc:1
+   * @example examples/cpp/mvc/itemtreeview.cc:1
+   *
+   * @image doc/qtlua_itemmodel.png
    */
 
 class ItemModel : public QAbstractItemModel
@@ -77,18 +79,22 @@ protected:
   /** Return supported mime type. May be reimplemented to add more types. */
   virtual QStringList mimeTypes() const;
 
+public:
+  /** @multiple @internal */
+  QVariant data(const QModelIndex &index, int role) const;
+  Qt::ItemFlags flags(const QModelIndex &index) const;
+  QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+  QModelIndex index(int row, int column, const QModelIndex &parent) const;
+  QModelIndex parent(const QModelIndex &index) const;
+  int rowCount(const QModelIndex &parent) const;
+  int columnCount(const QModelIndex &parent) const;
+  bool setData(const QModelIndex & index, const QVariant & value, int role);
+  /** */
+
 private:
-  QVariant	data(const QModelIndex &index, int role) const;
-  Qt::ItemFlags	flags(const QModelIndex &index) const;
-  QVariant	headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-  QModelIndex	index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
-  QModelIndex	parent(const QModelIndex &index) const;
-  int		rowCount(const QModelIndex &parent = QModelIndex()) const;
-  int		columnCount(const QModelIndex &parent = QModelIndex()) const;
-  bool		setData(const QModelIndex & index, const QVariant & value, int role);
-  bool		dropMimeData(const QMimeData *data, Qt::DropAction action,
-			     int row, int column, const QModelIndex & parent);
-  QMimeData *	mimeData(const QModelIndexList &indexes) const;
+  bool dropMimeData(const QMimeData *data, Qt::DropAction action,
+		    int row, int column, const QModelIndex & parent);
+  QMimeData * mimeData(const QModelIndexList &indexes) const;
   Qt::DropActions supportedDropActions() const;
 
   struct ItemQMimeData : public QMimeData

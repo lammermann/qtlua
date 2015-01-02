@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -67,7 +67,7 @@ namespace QtLua {
     *this = str;
   }
 
-  Value::Value(const State &ls, UserData::ptr item)
+  Value::Value(const State &ls, const Ref<UserData> &item)
     : _st(ls._st)
   {
     *this = item;
@@ -97,7 +97,7 @@ namespace QtLua {
     *this = str;
   }
 
-  Value::Value(lua_State *st, UserData::ptr item)
+  Value::Value(lua_State *st, const Ref<UserData> &item)
     : _st(st)
   {
     *this = item;
@@ -135,11 +135,14 @@ namespace QtLua {
     ListContainer result;
 
     for (int i = 1; ; i++)
-      try {
-	result.push_back((*this)[i]);
-      } catch (String &e) {
-	return result;
+      {
+	Value v((*this)[i]);
+	if (v.is_nil())
+	  break;
+	result.push_back(v);
       }
+
+    return result;
   }
 
   template <typename X>
@@ -299,6 +302,11 @@ namespace QtLua {
   Value::operator Bool () const
   {
     return to_boolean();
+  }
+
+  Value::List::List(const QList<Value> &list)
+    : QList<Value>(list)
+  {
   }
 
   template <typename X>
@@ -550,7 +558,7 @@ namespace QtLua {
   {
   }
 
-  Value::iterator_::iterator_(Ref<Iterator> i)
+  Value::iterator_::iterator_(const Ref<Iterator> &i)
     : _i(i)
   {
   }
@@ -584,7 +592,7 @@ namespace QtLua {
     return _i->get_key();
   }
 
-  Value::const_iterator::const_iterator(Ref<Iterator> i)
+  Value::const_iterator::const_iterator(const Ref<Iterator> &i)
     : iterator_(i)
   {
   }
@@ -608,7 +616,7 @@ namespace QtLua {
     return _i->get_value();
   }
 
-  Value::iterator::iterator(Ref<Iterator> i)
+  Value::iterator::iterator(const Ref<Iterator> &i)
     : iterator_(i)
   {
   }

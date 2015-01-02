@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -28,11 +28,11 @@
 
 namespace QtLua {
 
-Value ListItem::meta_operation(State &ls, Operation op, const Value &a, const Value &b)
+Value ListItem::meta_operation(State &ls, Value::Operation op, const Value &a, const Value &b)
 {
   switch (op)
     {
-    case OpLen:
+    case Value::OpLen:
       return Value(ls, get_child_count());
     default:
       return UserData::meta_operation(ls, op, a, b);
@@ -120,6 +120,20 @@ Value ListItem::meta_index(State &ls, const Value &key)
 Iterator::ptr ListItem::new_iterator(State &ls)
 {
   return QTLUA_REFNEW(ListIterator, ls, ListItem::ptr(*this));
+}
+
+bool ListItem::support(Value::Operation c) const
+{
+  switch (c)
+    {
+    case Value::OpIndex:
+    case Value::OpNewindex:
+    case Value::OpIterate:
+    case Value::OpLen:
+      return true;
+    default:
+      return false;
+    }
 }
 
 void ListItem::change_indexes(int first)

@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -71,16 +71,47 @@ namespace QtLua {
   }
 
   template <class Container>
-  Value QListProxyRo<Container>::meta_operation(State &ls, Operation op, const Value &a, const Value &b)
+  Value QListProxyRo<Container>::meta_operation(State &ls, Value::Operation op, const Value &a, const Value &b)
   {
     switch (op)
       {
-      case OpLen:
+      case Value::OpLen:
 	return Value(ls, _list ? _list->size() : 0);
-      case OpUnm:
+      case Value::OpUnm:
 	return _list ? Value(ls, *_list) : Value(ls);
       default:
 	return UserData::meta_operation(ls, op, a, b);
+      }
+  }
+
+  template <class Container>
+  bool QListProxyRo<Container>::support(Value::Operation c) const
+  {
+    switch (c)
+      {
+      case Value::OpIndex:
+      case Value::OpIterate:
+      case Value::OpLen:
+      case Value::OpUnm:
+	return true;
+      default:
+	return false;
+      }
+  }
+
+  template <class Container>
+  bool QListProxy<Container>::support(enum Value::Operation c)
+  {
+    switch (c)
+      {
+      case Value::OpIndex:
+      case Value::OpNewindex:
+      case Value::OpIterate:
+      case Value::OpLen:
+      case Value::OpUnm:
+	return true;
+      default:
+	return false;
       }
   }
 
@@ -119,7 +150,7 @@ namespace QtLua {
   }
 
   template <class Container>
-  QListProxyRo<Container>::ProxyIterator::ProxyIterator(State &ls, QListProxyRo::ptr proxy)
+  QListProxyRo<Container>::ProxyIterator::ProxyIterator(State &ls, const Ref<QListProxyRo> &proxy)
     : _ls(ls),
       _proxy(proxy),
       _it(_proxy->_list->begin()),

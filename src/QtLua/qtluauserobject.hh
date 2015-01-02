@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -31,8 +31,12 @@ namespace QtLua {
    * @header QtLua/UserObject
    * @module {Base}
    *
-   * This base class can be used to create objects with named properties
-   * accessible from lua. Each property can have a @tt set and @tt get
+   * This base class can be used to create C++ objects with named
+   * properties accessible from lua script. This is a lightweight
+   * alternative to writting a @ref QObject based class when only @tt
+   * set/get properties mechanism is needed.
+   *
+   * Each property can have a @tt set and @tt get
    * accessor functions registered through a static const array.
    * Property member and accessor functions can be user defined or declared
    * using the @ref #QTLUA_PROPERTY_GET , @ref #QTLUA_PROPERTY_SET ,
@@ -53,7 +57,7 @@ namespace QtLua {
     {
     public:
       QTLUA_REFTYPE(UserObjectIterator);
-      UserObjectIterator(State &ls, Ref<UserObject> obj);
+      UserObjectIterator(State &ls, const Ref<UserObject> &obj);
 
     private:
       bool more() const;
@@ -82,6 +86,7 @@ namespace QtLua {
     Value meta_index(State &ls, const Value &key);
     void meta_newindex(State &ls, const Value &key, const Value &value);
     Ref<Iterator> new_iterator(State &ls);
+    bool support(Value::Operation c) const;
 
     /** 
      * Define a simple inline get accessor function for the specified member

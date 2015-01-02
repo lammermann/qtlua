@@ -1,8 +1,8 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'test_qobject_arg.hh'
 **
-** Created: Fri Jul 3 02:48:08 2009
-**      by: The Qt Meta Object Compiler version 61 (Qt 4.5.1)
+** Created: Fri Jan 22 19:47:04 2010
+**      by: The Qt Meta Object Compiler version 61 (Qt 4.5.3)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -11,7 +11,7 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'test_qobject_arg.hh' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 61
-#error "This file was generated using the moc from 4.5.1. It"
+#error "This file was generated using the moc from 4.5.3. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif

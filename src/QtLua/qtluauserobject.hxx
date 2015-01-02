@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -67,7 +67,21 @@ namespace QtLua {
   }
 
   template <class T>
-  UserObject<T>::UserObjectIterator::UserObjectIterator(State &ls, UserObject<T>::ptr obj)
+  bool UserObject<T>::support(Value::Operation c) const
+  {
+    switch (c)
+      {
+      case Value::OpIndex:
+      case Value::OpNewindex:
+      case Value::OpIterate:
+	return true;
+      default:
+	return false;
+      }
+  }
+
+  template <class T>
+  UserObject<T>::UserObjectIterator::UserObjectIterator(State &ls, const Ref<UserObject<T> > &obj)
     : _ls(ls),
       _obj(obj),
       _index(0)
@@ -104,7 +118,8 @@ namespace QtLua {
   template <class T>
   ValueRef UserObject<T>::UserObjectIterator::get_value_ref()
   {
-    return ValueRef(Value(_ls, _obj), Value(_ls, T::member_table[_index].name));
+    return ValueRef(Value(_ls, _obj.template staticcast<T>()),
+		    Value(_ls, T::member_table[_index].name));
   }
 
 }

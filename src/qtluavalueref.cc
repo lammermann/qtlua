@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -29,12 +29,8 @@ extern "C" {
 
 namespace QtLua {
 
-  ValueRef::ValueRef(const Value &table, const Value &key)
-    : Value(table._st),
-      _key(key)
+  void ValueRef::init(const Value &table)
   {
-    assert(table._st == key._st);
-
     lua_pushlightuserdata(_st, this);
     table.push_value();
 
@@ -65,35 +61,62 @@ namespace QtLua {
 
   void ValueRef::push_value() const
   {
-    // table
+    // get table object
     lua_pushlightuserdata(_st, (void*)this);
     lua_rawget(_st, LUA_REGISTRYINDEX);  
-    // key
-    _key.push_value();
 
-    lua_gettable(_st, -2);
-    lua_remove(_st, -2);
+    int t = lua_type(_st, -1);
+
+    switch (t)
+      {
+      case TUserData:
+	try {
+	  UserData::ptr ud = UserData::get_ud(_st, -1);
+	  ud->meta_index(*State::get_this(_st), _key).push_value();
+	  lua_remove(_st, -2);
+
+	} catch (const String &e) {
+	  lua_pop(_st, 1);
+	  lua_pushnil(_st);
+	}
+	break;
+
+      case TTable:
+	_key.push_value();
+	lua_gettable(_st, -2);
+	lua_remove(_st, -2);
+	break;
+
+      default:
+	abort();
+      }
   }
 
-  ValueRef & ValueRef::operator=(const Value &v)
+  const ValueRef & ValueRef::operator=(const Value &v) const
   {
-    lua_pushlightuserdata(_st, this);
+    lua_pushlightuserdata(_st, (void*)this);
     lua_rawget(_st, LUA_REGISTRYINDEX);
 
     switch (lua_type(_st, -1))
       {
       case TUserData: {
-	UserData::ptr ud = UserData::get_ud(_st, -1);
-	lua_pop(_st, 1);
+	UserData::ptr ud = UserData::pop_ud(_st);
 	ud->meta_newindex(*State::get_this(_st), _key, v);
 	break;
       }
 
       case TTable:
 	_key.push_value();
-	v.push_value();
-	lua_settable(_st, -3);
-	lua_pop(_st, 1);
+	if (lua_isnil(_st, -1))
+	  {
+	    lua_pop(_st, 2);
+	  }
+	else
+	  {
+	    v.push_value();
+	    lua_settable(_st, -3);
+	    lua_pop(_st, 1);
+	  }
 	break;
 
       default:

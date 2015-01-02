@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -54,7 +54,19 @@ namespace QtLua {
   }
 
   template <class Container>
-  QLinkedListProxy<Container>::ProxyIterator::ProxyIterator(State &ls, QLinkedListProxy::ptr proxy)
+  bool QLinkedListProxy<Container>::support(Value::Operation c) const
+  {
+    switch (c)
+      {
+      case Value::OpIterate:
+	return true;
+      default:
+	return false;
+      }
+  }
+
+  template <class Container>
+  QLinkedListProxy<Container>::ProxyIterator::ProxyIterator(State &ls, const Ref<QLinkedListProxy> &proxy)
     : _ls(ls),
       _proxy(proxy),
       _it(_proxy->_linkedlist->begin()),

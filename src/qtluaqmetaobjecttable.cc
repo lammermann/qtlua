@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -19,6 +19,13 @@
 */
 
 #include <QMetaObject>
+
+#include <QtLua/Console>
+#include <QtLua/ItemSelectionModel>
+#include <QtLua/ItemModel>
+#include <QtLua/TableDialog>
+#include <QtLua/TableTreeModel>
+#include <QtLua/TableGridModel>
 
 #include <QAbstractItemDelegate>
 #include <QAbstractItemModel>
@@ -121,6 +128,13 @@
 namespace QtLua {
 
 const QMetaObject *meta_object_table[] = {
+  &QtLua::Console::staticMetaObject,
+  &QtLua::ItemSelectionModel::staticMetaObject,
+  &QtLua::ItemModel::staticMetaObject,
+  &QtLua::TableDialog::staticMetaObject,
+  &QtLua::TableTreeModel::staticMetaObject,
+  &QtLua::TableGridModel::staticMetaObject,
+
   &QAbstractItemDelegate::staticMetaObject,
   &QAbstractItemModel::staticMetaObject,
   &QAbstractItemView::staticMetaObject,

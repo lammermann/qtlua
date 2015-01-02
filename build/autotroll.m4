@@ -104,7 +104,7 @@ AC_DEFUN([AT_WITH_QT],
 dnl Memo: AC_ARG_WITH(package, help-string, [if-given], [if-not-given])
   AC_ARG_WITH([qt],
               [AS_HELP_STRING([--with-qt],
-                 [Path to Qt @<:@Look in PATH and /usr/local/Trolltech@:>@])],
+                 [Path to Qt tools[[Look in PATH and /usr/local/Trolltech]]])],
               [QT_PATH=$withval], [QT_PATH=])
 
   # Find Qt.
@@ -115,30 +115,31 @@ dnl Memo: AC_ARG_WITH(package, help-string, [if-given], [if-not-given])
   fi
 
   # Find qmake.
-  AC_PATH_PROGS([QMAKE], [qmake-qt4 qmake], [missing], [$QT_DIR:$QT_PATH:$PATH:$tmp_qt_paths])
+  AC_PATH_PROGS([QMAKE], [qmake-qt4 qmake4 qmake], [missing], [$QT_DIR:$QT_PATH:$PATH:$tmp_qt_paths])
   if test x"$QMAKE" = xmissing; then
     AC_MSG_ERROR([Cannot find qmake in your PATH. Try using --with-qt.])
   fi
 
   # Find moc (Meta Object Compiler).
-  AC_PATH_PROGS([MOC], [moc-qt4 moc], [missing], [$QT_PATH:$PATH:$tmp_qt_paths])
+  AC_PATH_PROGS([MOC], [moc-qt4 moc4 moc], [missing], [$QT_PATH:$PATH:$tmp_qt_paths])                
   if test x"$MOC" = xmissing; then
     AC_MSG_ERROR([Cannot find moc (Meta Object Compiler) in your PATH. Try using --with-qt.])
   fi
 
   # Find uic (User Interface Compiler).
-  AC_PATH_PROGS([UIC], [uic-qt4 moc], [missing], [$QT_PATH:$PATH:$tmp_qt_paths])
+  AC_PATH_PROGS([UIC], [uic-qt4 uic4 uic], [missing], [$QT_PATH:$PATH:$tmp_qt_paths])                
   if test x"$UIC" = xmissing; then
     AC_MSG_ERROR([Cannot find uic (User Interface Compiler) in your PATH. Try using --with-qt.])
   fi
 
   # Find rcc (Qt Resource Compiler).
-  AC_PATH_PROGS([RCC], [rcc-qt4 rcc], [false], [$QT_PATH:$PATH:$tmp_qt_paths])
+  AC_PATH_PROGS([RCC], [rcc-qt4 rcc4 rcc], [false], [$QT_PATH:$PATH:$tmp_qt_paths])                  
   if test x"$UIC" = xfalse; then
     AC_MSG_WARN([Cannot find rcc (Qt Resource Compiler) in your PATH. Try using --with-qt.])
   fi
 
   # If we don't know the path to Qt, guess it from the path to qmake.
+  AC_MSG_CHECKING([Qt install bin path])
   if test x"$QT_PATH" = x; then
     QT_PATH=`dirname "$QMAKE"`
   fi
@@ -146,11 +147,15 @@ dnl Memo: AC_ARG_WITH(package, help-string, [if-given], [if-not-given])
     AC_MSG_ERROR([Cannot find the path to your Qt install. Use --with-qt.])
   fi
   AC_SUBST([QT_PATH])
+  AC_MSG_RESULT($QT_PATH)
+
+  QTDIR="$QT_PATH/.."
+  export QTDIR
 
   # Get ready to build a test-app with Qt.
 
   # Look for a writable temporary directory.
-  AC_ARG_VAR([TMPDIR], [A temporary directory with write access @<:@/tmp@:>@])
+  AC_ARG_VAR([TMPDIR], [A temporary directory with write access [[/tmp]]])
   if test x"$TMPDIR" = x || test ! -d "$TMPDIR" || test ! -w "$TMPDIR"; then
     echo "$as_me:$LINENO: no TMPDIR or bad TMPDIR ($TMPDIR)" \
       >&AS_MESSAGE_LOG_FD
@@ -215,6 +220,23 @@ int main()
   Foo f;
 }
 _ASEOF
+
+  AC_MSG_CHECKING([Qt spec to use for the host system])
+  case $host_os in
+    *linux* ) QMAKESPEC="-spec linux-g++" ;;
+    *freebsd* ) QMAKESPEC="-spec freebsd-g++" ;;
+    *openbsd* ) QMAKESPEC="-spec openbsd-g++" ;;
+    *netbsd* ) QMAKESPEC="-spec netbsd-g++" ;;
+    *darwin* )
+	  QMAKESPEC="-spec macx-g++" 
+	  at_darwin="yes"
+	  ;;
+    *mingw* ) QMAKESPEC="-spec win32-g++" ;;
+           * ) AC_MSG_ERROR([No Qt spec defined for $host_os, please edit autotroll.m4.]) ;;
+  esac
+  AC_MSG_RESULT([$QMAKESPEC])
+
+
   if $QMAKE -project; then :; else
     AC_MSG_ERROR([Calling $QMAKE -project failed.])
   fi
@@ -237,16 +259,10 @@ m4_ifval([$3],
   echo "$3" >>"$pro_file"
 ])
 
-  AC_REQUIRE([AC_CANONICAL_HOST])[]dnl
-    case $host_os in
-    *darwin* ) QMAKE="$QMAKE -spec macx-g++" ;;
-           * ) ;;
-  esac
-
   echo "$as_me:$LINENO: Invoking $QMAKE on $pro_file" >&AS_MESSAGE_LOG_FD
   sed 's/^/| /' "$pro_file" >&AS_MESSAGE_LOG_FD
 
-  if $QMAKE; then :; else
+  if $QMAKE $QMAKESPEC; then :; else
     AC_MSG_ERROR([Calling $QMAKE failed.])
   fi
   # Try to compile a simple Qt app.
@@ -302,10 +318,10 @@ instead" >&AS_MESSAGE_LOG_FD
   # It starts by removing the beginning of the line, removing references to
   # SUBLIBS, removing unnecessary whitespaces at the beginning, and prefixes
   # all variable uses by QT_.
-  qt_sed_filter='s///;
-                 s/$(SUBLIBS)//g;
-                 s/^ *//;
-                 s/\$(\(@<:@A-Z_@:>@@<:@A-Z_@:>@*\))/$(QT_\1)/g'
+  qt_sed_filter='s/^[[^=]]*=//;
+                 s/\$(SUBLIBS)//g;
+		 s:\$(QTDIR):'$QTDIR':g;
+                 s/\$(\([[A-Z_]][[A-Z_]]*\))/$(qmake_\1)/g'
 
   # Find the Makefile (qmake happens to generate a fake Makefile which invokes
   # a Makefile.Debug or Makefile.Release). We we have both, we'll pick the
@@ -324,44 +340,46 @@ instead" >&AS_MESSAGE_LOG_FD
 
   # Find the DEFINES of Qt (should have been named CPPFLAGS).
   AC_CACHE_CHECK([for the DEFINES to use with Qt], [at_cv_env_QT_DEFINES],
-  [at_cv_env_QT_DEFINES=`sed "/^DEFINES@<:@^A-Z@:>@*=/!d;$qt_sed_filter" $at_mfile`])
+  [at_cv_env_QT_DEFINES=`sed "/^DEFINES[[^A-Z]]*=/!d;$qt_sed_filter" $at_mfile`])
   AC_SUBST([QT_DEFINES], [$at_cv_env_QT_DEFINES])
 
   # Find the CFLAGS of Qt (We can use Qt in C?!)
   AC_CACHE_CHECK([for the CFLAGS to use with Qt], [at_cv_env_QT_CFLAGS],
-  [at_cv_env_QT_CFLAGS=`sed "/^CFLAGS@<:@^A-Z@:>@*=/!d;$qt_sed_filter" $at_mfile`])
+  [at_cv_env_QT_CFLAGS=`sed "/^CFLAGS[[^A-Z]]*=/!d;$qt_sed_filter;s/-[[^D]][[^-]]*//g" $at_mfile`])
   AC_SUBST([QT_CFLAGS], [$at_cv_env_QT_CFLAGS])
 
   # Find the CXXFLAGS of Qt.
   AC_CACHE_CHECK([for the CXXFLAGS to use with Qt], [at_cv_env_QT_CXXFLAGS],
-  [at_cv_env_QT_CXXFLAGS=`sed "/^CXXFLAGS@<:@^A-Z@:>@*=/!d;$qt_sed_filter" $at_mfile`])
+  [at_cv_env_QT_CXXFLAGS=`sed "/^CXXFLAGS[[^A-Z]]*=/!d;$qt_sed_filter;s/-[[^D]][[^-]]*//g" $at_mfile`])
   AC_SUBST([QT_CXXFLAGS], [$at_cv_env_QT_CXXFLAGS])
 
   # Find the INCPATH of Qt.
   AC_CACHE_CHECK([for the INCPATH to use with Qt], [at_cv_env_QT_INCPATH],
-  [at_cv_env_QT_INCPATH=`sed "/^INCPATH@<:@^A-Z@:>@*=/!d;$qt_sed_filter" $at_mfile`])
+  [for i in $(sed "/^INCPATH[[^A-Z]]*=/!d;s/-I//g;s/\"//g;$qt_sed_filter" $at_mfile) ; do
+      d=`echo -n $i/ | sed -e "s://*:/:g" \                                                                 
+                          -e "\:^\.\./:bn" -e "\:^/:bn" \                                                   
+                          -e "d;q" \                                                                        
+                          -e ":n" -e "s:^\.\./:$TMPDIR/:" \                                                 
+                          -e ":a" -e "s:/[[^/.]][[^/.]]*/\.\./:/:g" -e "ta" \                               
+                          -e "s:/$::"`                                                                      
+      if test -d "$d" ; then
+         at_cv_env_QT_INCPATH="$at_cv_env_QT_INCPATH -I $d"
+      fi
+  done
+  ])
   AC_SUBST([QT_INCPATH], [$at_cv_env_QT_INCPATH])
 
   AC_SUBST([QT_CPPFLAGS], ["$at_cv_env_QT_DEFINES $at_cv_env_QT_INCPATH"])
 
   # Find the LFLAGS of Qt (Should have been named LDFLAGS)
   AC_CACHE_CHECK([for the LDFLAGS to use with Qt], [at_cv_env_QT_LDFLAGS],
-  [at_cv_env_QT_LDFLAGS=`sed "/^LFLAGS@<:@^A-Z@:>@*=/!d;$qt_sed_filter" $at_mfile`])
+  [at_cv_env_QT_LDFLAGS=`sed "/^LFLAGS[[^A-Z]]*=/!d;$qt_sed_filter" $at_mfile`])
   AC_SUBST([QT_LFLAGS], [$at_cv_env_QT_LDFLAGS])
   AC_SUBST([QT_LDFLAGS], [$at_cv_env_QT_LDFLAGS])
 
-  AC_MSG_CHECKING([whether host operating system is Darwin])
-  at_darwin="no"
-  case $host_os in
-    darwin*)
-      at_darwin="yes"
-      ;;
-  esac
-  AC_MSG_RESULT([$at_darwin])
-
   # Find the LIBS of Qt.
   AC_CACHE_CHECK([for the LIBS to use with Qt], [at_cv_env_QT_LIBS],
-  [at_cv_env_QT_LIBS=`sed "/^LIBS@<:@^A-Z@:>@*=/!d;$qt_sed_filter" $at_mfile`
+  [at_cv_env_QT_LIBS=`sed "/^LIBS[[^A-Z]]*=/!d;$qt_sed_filter" $at_mfile`
    if test x$at_darwin = xyes; then
      # Fix QT_LIBS: as of today Libtool (GNU Libtool 1.5.23a) doesn't handle
      # -F properly. The "bug" has been fixed on 22 October 2006

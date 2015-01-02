@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -56,6 +56,12 @@ class Iterator;
  * Objects derived from this class are subject to lua garbage
  * collection and must be handled by the @ref QtLua::Ref smart pointer
  * class in C++ code.
+ *
+ * @ref UserData base class declaration example:
+ * @example examples/cpp/userdata/ref.cc:1
+ *
+ * @ref UserData objects allocation examples:
+ * @example examples/cpp/userdata/ref.cc:3|5
  */
 
 class UserData : public QtLua::Refobj<UserData>
@@ -70,26 +76,6 @@ public:
 
   virtual inline ~UserData();
 
-  /**
-   * Specify lua metatable operations performed on lua @ref UserData objects.
-   * @see meta_operation
-   */
-  enum Operation
-    {
-      OpAdd,      //< Lua add binary operator @tt +
-      OpSub,      //< Lua subtract binary operator @tt -
-      OpMul,      //< Lua multiply binary operator @tt *
-      OpDiv,      //< Lua divied binary operator @tt /
-      OpMod,      //< Lua modulo binary operator @tt %
-      OpPow,      //< Lua power binary operator @tt ^
-      OpUnm,      //< Lua negative unary operator @tt -
-      OpConcat,   //< Lua concatenation binary operator @tt ..
-      OpLen,      //< Lua length unary operator @tt #
-      OpEq,       //< Lua equal binary operator @tt ==
-      OpLt,       //< Lua less than binary operator @tt <
-      OpLe,       //< Lua less than or equal binary operator @tt <=
-    };
-
   /** Get a bare C++ typename from type */
   template <class X>
   static String type_name();
@@ -97,19 +83,21 @@ public:
   /**
    * This function is called when a lua operator is used with a @ref
    * UserData object. The default implementation throws an error
-   * message.
+   * message. The @ref support function should be reimplemented along
+   * with this function.
    *
-   * @param op Specify invoked lua operator (see @ref Operation).
+   * @param op Specify invoked lua operator (see @ref Value::Operation).
    * @param a First value involved in operation.
    * @param b Second value involved in operation for binary operators.
    * @returns Operation result value.
    */
-  virtual Value meta_operation(State &ls, Operation op, const Value &a, const Value &b);
+  virtual Value meta_operation(State &ls, Value::Operation op, const Value &a, const Value &b);
 
   /** 
    * This functions is called when a table read access operation is
    * attempted on a userdata object. The default implementation throws
-   * an error message.
+   * an error message. The @ref support function should be
+   * reimplemented along with this function.
    * 
    * @param key Value used as table index.
    * @returns Table access result value.
@@ -119,7 +107,8 @@ public:
   /**
    * This functions is called when a table write access operation is
    * attempted on a userdata object. The default implementation throws
-   * an error message.
+   * an error message. The @ref support function should be
+   * reimplemented along with this function.
    *
    * @param key Value used as table index.
    * @param value Value to put in table.
@@ -129,7 +118,8 @@ public:
   /**
    * This function is called when a function invokation operation is
    * performed on a userdata object. The default implementation throws
-   * an error message.
+   * an error message. The @ref support function should be
+   * reimplemented along with this function.
    *
    * @param args List of passed arguments.
    * @returns List of returned values.
@@ -138,8 +128,9 @@ public:
 
   /**
    * This function may return an @ref Iterator object used to iterate
-   * over an userdata object. The default implementation throws
-   * an error message.
+   * over an userdata object. The default implementation throws an
+   * error message. The @ref support function should be reimplemented
+   * along with this function.
    *
    * @returns an @ref Iterator based iterator object.
    */
@@ -160,6 +151,9 @@ public:
    * object pointer. This is used for mainly for pretty printing.
    */
   virtual String get_value_str() const;
+
+  /** Check given operation support. @see Value::support */
+  virtual bool support(enum Value::Operation c) const;
 
   /** Userdata compare for equality, default implementation compares the @tt this pointers */
   virtual bool operator==(const UserData &ud);
@@ -204,8 +198,12 @@ protected:
 
 private:
 
+  template <bool pop>
+  static QtLua::Ref<UserData> get_ud_(lua_State *st, int i);
   /** Get @ref QtLua::UserData reference from lua stack element. */
   static QtLua::Ref<UserData> get_ud(lua_State *st, int i);
+  /** Get @ref QtLua::UserData reference from lua stack element and pop stack */
+  static QtLua::Ref<UserData> pop_ud(lua_State *st);
   /** Push a reference to QtLua::UserData on lua stack. */
   void push_ud(lua_State *st);
 };

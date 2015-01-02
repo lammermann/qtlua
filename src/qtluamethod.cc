@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -51,7 +51,7 @@ namespace QtLua {
     QMetaMethod mm = _mo->method(_index);
 
     if (mm.methodType() != QMetaMethod::Slot)
-      throw String("Can not call non-slot methods.");
+      throw String("Can't call non-slot methods.");
 
     void *qt_args[11];
     int qt_tid[11];
@@ -132,6 +132,17 @@ namespace QtLua {
     const char * t = mm.typeName();
 
     return String(*t ? t : "void") + " " + _mo->className() + "::" + mm.signature();
+  }
+
+  bool Method::support(Value::Operation c) const
+  {
+    switch (c)
+      {
+      case Value::OpCall:
+	return true;
+      default:
+	return false;
+      }
   }
 
   void Method::completion_patch(String &path, String &entry, int &offset)

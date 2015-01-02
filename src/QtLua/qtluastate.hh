@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -29,6 +29,12 @@
 #include "qtluastring.hh"
 #include "qtluavalue.hh"
 #include "qtluavalueref.hh"
+
+#define QTLUA_PROTECT(...)			\
+  try {						\
+    __VA_ARGS__;				\
+  } catch (const String &e) {			\
+  }
 
 struct lua_State;
 
@@ -191,6 +197,11 @@ public slots:
    * Console widget for default global variables completion behavior.
    */
   void fill_completion_list(const QString &prefix, QStringList &list, int &cursor_offset);
+
+  /**
+   * @internal This function return a lua value from an expression.
+   */
+  Value eval_expr(bool use_lua, const String &expr);
 
 signals:
 

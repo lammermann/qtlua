@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -54,7 +54,8 @@ public:
 
   Value meta_index(State &ls, const Value &key);
   Ref<Iterator> new_iterator(State &ls);
-  Value meta_operation(State &ls, Operation op, const Value &a, const Value &b);
+  Value meta_operation(State &ls, Value::Operation op, const Value &a, const Value &b);
+  virtual bool support(Value::Operation c) const;
 
 private:
   virtual void completion_patch(String &path, String &entry, int &offset);
@@ -67,7 +68,7 @@ private:
   {
   public:
     QTLUA_REFTYPE(ProxyIterator);
-    ProxyIterator(State &ls, QHashProxyRo::ptr proxy);
+    ProxyIterator(State &ls, const Ref<QHashProxyRo> &proxy);
 
   private:
     bool more() const;
@@ -128,6 +129,7 @@ public:
   QHashProxy(Container &hash);
 
   void meta_newindex(State &ls, const Value &key, const Value &value);
+  bool support(enum Value::Operation c);
 };
 
 }

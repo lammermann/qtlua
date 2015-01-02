@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -47,7 +47,8 @@ void UserData::push_ud(lua_State *st)
   lua_setmetatable(st, -2);
 }
 
-QtLua::Ref<UserData> UserData::get_ud(lua_State *st, int i)
+template <bool pop>
+inline QtLua::Ref<UserData> UserData::get_ud_(lua_State *st, int i)
 {
 #ifndef QTLUA_NO_USERDATA_CHECK
   if (lua_getmetatable(st, i))
@@ -60,6 +61,10 @@ QtLua::Ref<UserData> UserData::get_ud(lua_State *st, int i)
 	  lua_pop(st, 2);
 #endif
 	  UserData::ptr	*item = static_cast<UserData::ptr *>(lua_touserdata(st, i));
+
+	  if (pop)
+	    lua_pop(st, 1);
+
 	  return *item;
 #ifndef QTLUA_NO_USERDATA_CHECK
 	}
@@ -69,8 +74,21 @@ QtLua::Ref<UserData> UserData::get_ud(lua_State *st, int i)
 
   lua_pop(st, 1);
 
+  if (pop)
+    lua_pop(st, 1);
+
   throw String("Lua userdata is not a QtLua::UserData.");
 #endif
+}
+
+QtLua::Ref<UserData> UserData::get_ud(lua_State *st, int i)
+{
+  return get_ud_<false>(st, i);
+}
+
+QtLua::Ref<UserData> UserData::pop_ud(lua_State *st)
+{
+  return get_ud_<true>(st, -1);
 }
 
 String UserData::get_type_name() const
@@ -88,7 +106,7 @@ String UserData::get_value_str() const
   return QString().sprintf("%p", this);
 }
 
-Value UserData::meta_operation(State &ls, Operation op,
+Value UserData::meta_operation(State &ls, Value::Operation op,
 			       const Value &a, const Value &b) 
 {
   throw String("Operation not handled by % type").arg(get_type_name());
@@ -112,6 +130,11 @@ Value::List UserData::meta_call(State &ls, const Value::List &args)
 Ref<Iterator> UserData::new_iterator(State &ls)
 {
   throw String("Table iteration not handled by % type").arg(get_type_name());
+}
+
+bool UserData::support(Value::Operation c) const
+{
+  return false;
 }
 
 void UserData::meta_call_check_args(const Value::List &args,

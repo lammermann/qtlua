@@ -2,7 +2,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
     Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
@@ -27,6 +27,7 @@
 #include <QErrorMessage>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QApplication>
 
 #include <QMenu>
 #include <QMenuBar>
@@ -35,6 +36,7 @@
 #include <QtLua/Function>
 #include <internal/QObjectWrapper>
 #include <QtLua/QHashProxy>
+#include <QtLua/TableDialog>
 
 #include <internal/Method>
 #include <internal/MetaCache>
@@ -53,7 +55,11 @@ namespace QtLua {
       : QHashProxyRo<qmetaobject_table_t>(_mo_table)
     {
       for (const QMetaObject **mo = meta_object_table; *mo; mo++)
-	_mo_table.insert((*mo)->className(), QMetaObjectWrapper(*mo));
+	{
+	  String name((*mo)->className());
+	  name.replace(':', '_');
+	  _mo_table.insert(name, QMetaObjectWrapper(*mo));
+	}
     }
 
   private:
@@ -358,7 +364,7 @@ namespace QtLua {
 	QAction *action;
 	QMenu *menu = 0;
 
-	if (action = dynamic_cast<QAction*>(&obj))
+	if ((action = dynamic_cast<QAction*>(&obj)))
 	  ;
 	else if ((menu = dynamic_cast<QMenu*>(&obj)))
 	  action = menu->menuAction();
@@ -419,7 +425,7 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	return Value(ls, QFileDialog::getExistingDirectory(0,
+	return Value(ls, QFileDialog::getExistingDirectory(QApplication::activeWindow(),
 			   get_arg<String>(args, 0, ""),
 			   get_arg<String>(args, 1, ""),
 			   (QFileDialog::Option)get_arg<int>(args, 2, QFileDialog::ShowDirsOnly)
@@ -446,7 +452,7 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	return Value(ls, QFileDialog::getOpenFileName(0,
+	return Value(ls, QFileDialog::getOpenFileName(QApplication::activeWindow(),
 			   get_arg<String>(args, 0, ""),
 			   get_arg<String>(args, 1, ""),
 			   get_arg<String>(args, 2, ""), 0,
@@ -474,7 +480,7 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	return Value(ls, QFileDialog::getOpenFileNames(0,
+	return Value(ls, QFileDialog::getOpenFileNames(QApplication::activeWindow(),
 			   get_arg<String>(args, 0, ""),
 			   get_arg<String>(args, 1, ""),
 			   get_arg<String>(args, 2, ""), 0,
@@ -502,7 +508,7 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	return Value(ls, QFileDialog::getSaveFileName(0,
+	return Value(ls, QFileDialog::getSaveFileName(QApplication::activeWindow(),
 			   get_arg<String>(args, 0, ""),
 			   get_arg<String>(args, 1, ""),
 			   get_arg<String>(args, 2, ""), 0,
@@ -530,7 +536,7 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	QColor c = QColorDialog::getColor(Qt::white);
+	QColor c = QColorDialog::getColor(Qt::white, QApplication::activeWindow());
 
 	return c.isValid() ? Value(ls, c.red()), Value(ls, c.green()), Value(ls, c.blue())
 	                   : Value::List();
@@ -580,7 +586,7 @@ namespace QtLua {
       Value::List meta_call(State &ls, const Value::List &args)
       {
 	bool ok;
-	double v = QInputDialog::getDouble(0,
+	double v = QInputDialog::getDouble(QApplication::activeWindow(),
 				 get_arg<String>(args, 0, ""),
 				 get_arg<String>(args, 1, ""),
 				 get_arg<double>(args, 2, 0),
@@ -613,7 +619,7 @@ namespace QtLua {
       Value::List meta_call(State &ls, const Value::List &args)
       {
 	bool ok;
-	int v = QInputDialog::getInteger(0,
+	int v = QInputDialog::getInteger(QApplication::activeWindow(),
 				 get_arg<String>(args, 0, ""),
 				 get_arg<String>(args, 1, ""),
 				 get_arg<int>(args, 2, 0),
@@ -646,7 +652,7 @@ namespace QtLua {
       Value::List meta_call(State &ls, const Value::List &args)
       {
 	bool ok;
-	QString v = QInputDialog::getText(0,
+	QString v = QInputDialog::getText(QApplication::activeWindow(),
 				 get_arg<String>(args, 0, ""),
 				 get_arg<String>(args, 1, ""),
 				 QLineEdit::Normal,
@@ -677,7 +683,7 @@ namespace QtLua {
       Value::List meta_call(State &ls, const Value::List &args)
       {
 	bool ok;
-	QString v = QInputDialog::getItem(0,
+	QString v = QInputDialog::getItem(QApplication::activeWindow(),
 				 get_arg<String>(args, 3, ""),
 				 get_arg<String>(args, 4, ""),
 				 get_arg<QList<QString> >(args, 0),
@@ -731,7 +737,7 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	QMessageBox::about(0, get_arg<String>(args, 1, ""), get_arg<String>(args, 0));
+	QMessageBox::about(QApplication::activeWindow(), get_arg<String>(args, 1, ""), get_arg<String>(args, 0));
 	return Value(ls);
       }
 
@@ -755,7 +761,7 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	return Value(ls, QMessageBox::critical(0,
+	return Value(ls, QMessageBox::critical(QApplication::activeWindow(),
 					       get_arg<String>(args, 1, ""),
 					       get_arg<String>(args, 0),
 					       (QMessageBox::StandardButtons)get_arg<int>(args, 2, QMessageBox::Ok),
@@ -782,7 +788,7 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	return Value(ls, QMessageBox::information(0,
+	return Value(ls, QMessageBox::information(QApplication::activeWindow(),
 					       get_arg<String>(args, 1, ""),
 					       get_arg<String>(args, 0),
 					       (QMessageBox::StandardButtons)get_arg<int>(args, 2, QMessageBox::Ok),
@@ -809,7 +815,7 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	return Value(ls, QMessageBox::question(0,
+	return Value(ls, QMessageBox::question(QApplication::activeWindow(),
 					       get_arg<String>(args, 1, ""),
 					       get_arg<String>(args, 0),
 					       (QMessageBox::StandardButtons)get_arg<int>(args, 2, QMessageBox::Ok),
@@ -836,7 +842,7 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	return Value(ls, QMessageBox::warning(0,
+	return Value(ls, QMessageBox::warning(QApplication::activeWindow(),
 					       get_arg<String>(args, 1, ""),
 					       get_arg<String>(args, 0),
 					       (QMessageBox::StandardButtons)get_arg<int>(args, 2, QMessageBox::Ok),
@@ -856,6 +862,141 @@ namespace QtLua {
     } dialog_msg_warning;
 
     dialog_msg_warning.register_(ls, "qt.dialog.msg_warning");
+
+    //////////////////////////////////////////////////////////////////////
+
+    static class : public Function
+    {
+      Value::List meta_call(State &ls, const Value::List &args)
+      {
+	meta_call_check_args(args, 1, 3, Value::TNone, Value::TNumber, Value::TNumber);
+
+	return Value(ls, new TableDialog(args[0],
+					 (TableDialog::ViewType)get_arg<int>(args, 1), 0,
+					 get_arg<int>(args, 2, 0), 0), true);
+      }
+
+      String get_description() const
+      {
+	return "dynamically create a new QtLua::TableDialog";
+      }
+
+      String get_help() const
+      {
+	return ("usage: qt.dialog.new_table_dialog( table , viewtype, [ attributes ] )");
+      }
+
+    } new_table_dialog;
+
+    new_table_dialog.register_(ls, "qt.dialog.new_table_dialog");
+
+    //////////////////////////////////////////////////////////////////////
+
+    static class : public Function
+    {
+      Value::List meta_call(State &ls, const Value::List &args)
+      {
+	meta_call_check_args(args, 1, 3, Value::TNone, Value::TNumber, Value::TString);
+
+	TableDialog::tree_tree_dialog(QApplication::activeWindow(),
+				      get_arg<String>(args, 2, ""), args[0],
+				      (TableTreeModel::Attributes)get_arg<int>(args, 1, 0)
+				      );
+
+	return Value::List();
+      }
+
+      String get_description() const
+      {
+	return "expose a lua table in a QTreeView";
+      }
+
+      String get_help() const
+      {
+	return ("usage: qt.dialog.tree_treeview( table [ , attributes, \"title\" ] )");
+      }
+
+    } dialog_tree_treeview;
+
+    dialog_tree_treeview.register_(ls, "qt.dialog.tree_treeview");
+
+    //////////////////////////////////////////////////////////////////////
+
+    static class : public Function
+    {
+      Value::List meta_call(State &ls, const Value::List &args)
+      {
+	meta_call_check_args(args, 1, 3, Value::TNone, Value::TNumber, Value::TString);
+
+	TableDialog::tree_table_dialog(QApplication::activeWindow(),
+				      get_arg<String>(args, 2, ""), args[0],
+				      (TableTreeModel::Attributes)get_arg<int>(args, 1, 0)
+				      );
+
+	return Value::List();
+      }
+
+      String get_description() const
+      {
+	return "expose a lua table in a QTreeView";
+      }
+
+      String get_help() const
+      {
+	return ("usage: qt.dialog.tree_tableview( table [ , attributes, \"title\" ] )");
+      }
+
+    } dialog_tree_tableview;
+
+    dialog_tree_tableview.register_(ls, "qt.dialog.tree_tableview");
+
+    //////////////////////////////////////////////////////////////////////
+
+    static class : public Function
+    {
+      Value::List meta_call(State &ls, const Value::List &args)
+      {
+	meta_call_check_args(args, 1, 5, Value::TNone, Value::TNumber,
+			     Value::TString, Value::TTable, Value::TTable);
+	Value::List rk, *rkptr = 0;
+	Value::List ck, *ckptr = 0;
+
+	if (args.count() >= 5)
+	  {
+	    rk = args[4].to_qlist<Value>();
+	    if (!rk.empty())
+	      rkptr = &rk;
+	  }
+
+	if (args.count() >= 4)
+	  {
+	    ck = args[3].to_qlist<Value>();
+	    if (!ck.empty())
+	      ckptr = &ck;
+	  }
+
+	TableDialog::grid_table_dialog(QApplication::activeWindow(),
+				       get_arg<String>(args, 2, ""), args[0],
+				       (TableGridModel::Attributes)get_arg<int>(args, 1, 0),
+				       ckptr, rkptr
+				       );
+
+	return Value::List();
+      }
+
+      String get_description() const
+      {
+	return "expose 2 dimensions nested lua tables in a QTableView";
+      }
+
+      String get_help() const
+      {
+	return ("usage: qt.dialog.grid_tableview( table [ , attributes, \"title\", {column keys}, {row keys} ] )");
+      }
+
+    } dialog_grid_tableview;
+
+    dialog_grid_tableview.register_(ls, "qt.dialog.grid_tableview");
 
   }
 

@@ -3,7 +3,7 @@
     This file is part of LibQtLua.
 
     LibQtLua is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -12,43 +12,41 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
-    Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
+    Copyright (C) 2010, Alexandre Becoulet <alexandre.becoulet@free.fr>
 
 */
 
 #include <QApplication>
 
-#include "treeview.hh"
-							/* anchor 1 */
+#include "tabletreeview.hh"
+
 MainWindow::MainWindow()
   : QMainWindow()
 {
-  // Lua state
+							/* anchor 1 */
   state = new QtLua::State();
+  state->openlib(QtLua::AllLibs);
 
-  // Create tree root node
-  QtLua::ListItem::ptr root = QTLUA_REFNEW(QtLua::ListItem, );
+  // Create a new model and expose lua global table
+  model = new QtLua::TableTreeModel((*state)["_G"], QtLua::TableTreeModel::Recursive);
 
-  // Set as lua global
-  (*state)["root"] = root;
-
-  // Insert 2 new nodes
-  QTLUA_REFNEW(QtLua::Item, "foo")->insert(root);
-  QTLUA_REFNEW(QtLua::Item, "foo2")->insert(root);
-
-  // Create Qt view widget and set model
+  // Create Qt view widget
   treeview = new QTreeView(0);
-  setCentralWidget(treeview);
-  model = new QtLua::ItemModel(root);
   treeview->setModel(model);
 
-  // Rename node from lua script
-  state->exec_statements("root.bar = root.foo2");
-}
+  setCentralWidget(treeview);
 							/* anchor end */
+}
+
+MainWindow::~MainWindow()
+{
+  treeview->setModel(0);
+  delete model;
+  delete state;
+}
 
 int main(int argc, char *argv[])
 {
