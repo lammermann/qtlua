@@ -140,6 +140,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
+LIBRARY_VERSION = @LIBRARY_VERSION@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
@@ -618,8 +619,6 @@ uninstall-am:
 
 .qrc.qrc.C:
 	$(RCC) -name `echo "$<" | sed 's/\.qrc$$//'` $< -o $@
-
-#BUILT_SOURCES = 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

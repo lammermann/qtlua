@@ -83,9 +83,11 @@ test_item_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test_item_CXXFLAGS) \
 	$(CXXFLAGS) $(test_item_LDFLAGS) $(LDFLAGS) -o $@
 am_test_qobject_arg_OBJECTS =  \
-	test_qobject_arg-test_qobject_arg.$(OBJEXT) \
+	test_qobject_arg-test_qobject_arg.$(OBJEXT)
+nodist_test_qobject_arg_OBJECTS =  \
 	test_qobject_arg-test_qobject_arg.moc.$(OBJEXT)
-test_qobject_arg_OBJECTS = $(am_test_qobject_arg_OBJECTS)
+test_qobject_arg_OBJECTS = $(am_test_qobject_arg_OBJECTS) \
+	$(nodist_test_qobject_arg_OBJECTS)
 test_qobject_arg_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/src/libqtlua.la
 test_qobject_arg_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
@@ -129,7 +131,8 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(test_item_SOURCES) $(test_qobject_arg_SOURCES) \
-	$(test_table_SOURCES) $(test_value_SOURCES)
+	$(nodist_test_qobject_arg_SOURCES) $(test_table_SOURCES) \
+	$(test_value_SOURCES)
 DIST_SOURCES = $(test_item_SOURCES) $(test_qobject_arg_SOURCES) \
 	$(test_table_SOURCES) $(test_value_SOURCES)
 ETAGS = etags
@@ -173,6 +176,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
+LIBRARY_VERSION = @LIBRARY_VERSION@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
@@ -290,7 +294,8 @@ test_item_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 test_item_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS) -I$(top_srcdir)/src
 test_item_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags)
 test_item_LDADD = $(QT_LIBS) $(LDADD) $(top_builddir)/src/libqtlua.la
-test_qobject_arg_SOURCES = test_qobject_arg.cc test_qobject_arg.hh test_qobject_arg.moc.cc test.hh
+test_qobject_arg_SOURCES = test_qobject_arg.cc test_qobject_arg.hh test.hh
+nodist_test_qobject_arg_SOURCES = test_qobject_arg.moc.cc
 test_qobject_arg_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 test_qobject_arg_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS) -I$(top_srcdir)/src
 test_qobject_arg_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags)

@@ -71,18 +71,19 @@ CONFIG_HEADER = $(top_builddir)/config.hh
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
-am_console_OBJECTS = console-console.$(OBJEXT) \
-	console-console.moc.$(OBJEXT)
-console_OBJECTS = $(am_console_OBJECTS)
+am_console_OBJECTS = console-console.$(OBJEXT)
+nodist_console_OBJECTS = console-console.moc.$(OBJEXT)
+console_OBJECTS = $(am_console_OBJECTS) $(nodist_console_OBJECTS)
 am__DEPENDENCIES_1 =
 console_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/src/libqtlua.la
 console_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(console_CXXFLAGS) $(CXXFLAGS) \
 	$(console_LDFLAGS) $(LDFLAGS) -o $@
-am_console_fcn_OBJECTS = console_fcn-console_fcn.$(OBJEXT) \
-	console_fcn-console.moc.$(OBJEXT)
-console_fcn_OBJECTS = $(am_console_fcn_OBJECTS)
+am_console_fcn_OBJECTS = console_fcn-console_fcn.$(OBJEXT)
+nodist_console_fcn_OBJECTS = console_fcn-console.moc.$(OBJEXT)
+console_fcn_OBJECTS = $(am_console_fcn_OBJECTS) \
+	$(nodist_console_fcn_OBJECTS)
 console_fcn_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/src/libqtlua.la
 console_fcn_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
@@ -110,7 +111,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(console_SOURCES) $(console_fcn_SOURCES)
+SOURCES = $(console_SOURCES) $(nodist_console_SOURCES) \
+	$(console_fcn_SOURCES) $(nodist_console_fcn_SOURCES)
 DIST_SOURCES = $(console_SOURCES) $(console_fcn_SOURCES)
 ETAGS = etags
 CTAGS = ctags
@@ -151,6 +153,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
+LIBRARY_VERSION = @LIBRARY_VERSION@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
@@ -253,12 +256,14 @@ SUFFIXES = .moc.cpp .moc.cc .moc.cxx .moc.C .h .hh \
            .qrc .qrc.cpp .qrc.cc .qrc.cxx .qrc.C
 
 DISTCLEANFILES = $(BUILT_SOURCES)
-console_SOURCES = console.cc console.moc.cc console.hh
+console_SOURCES = console.cc console.hh
+nodist_console_SOURCES = console.moc.cc
 console_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 console_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS) -I$(top_srcdir)/src
 console_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags)
 console_LDADD = $(QT_LIBS) $(LDADD) $(top_builddir)/src/libqtlua.la
-console_fcn_SOURCES = console_fcn.cc console.moc.cc console.hh
+console_fcn_SOURCES = console_fcn.cc console.hh
+nodist_console_fcn_SOURCES = console.moc.cc
 console_fcn_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 console_fcn_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS) -I$(top_srcdir)/src
 console_fcn_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags)

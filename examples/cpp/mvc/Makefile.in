@@ -72,26 +72,31 @@ CONFIG_HEADER = $(top_builddir)/config.hh
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
-am_itemtreeview_OBJECTS = itemtreeview-itemtreeview.$(OBJEXT) \
-	itemtreeview-itemtreeview.moc.$(OBJEXT)
-itemtreeview_OBJECTS = $(am_itemtreeview_OBJECTS)
+am_itemtreeview_OBJECTS = itemtreeview-itemtreeview.$(OBJEXT)
+nodist_itemtreeview_OBJECTS = itemtreeview-itemtreeview.moc.$(OBJEXT)
+itemtreeview_OBJECTS = $(am_itemtreeview_OBJECTS) \
+	$(nodist_itemtreeview_OBJECTS)
 am__DEPENDENCIES_1 =
 itemtreeview_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/src/libqtlua.la
 itemtreeview_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(itemtreeview_CXXFLAGS) \
 	$(CXXFLAGS) $(itemtreeview_LDFLAGS) $(LDFLAGS) -o $@
-am_tablegridview_OBJECTS = tablegridview-tablegridview.$(OBJEXT) \
+am_tablegridview_OBJECTS = tablegridview-tablegridview.$(OBJEXT)
+nodist_tablegridview_OBJECTS =  \
 	tablegridview-tablegridview.moc.$(OBJEXT)
-tablegridview_OBJECTS = $(am_tablegridview_OBJECTS)
+tablegridview_OBJECTS = $(am_tablegridview_OBJECTS) \
+	$(nodist_tablegridview_OBJECTS)
 tablegridview_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/src/libqtlua.la
 tablegridview_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(tablegridview_CXXFLAGS) \
 	$(CXXFLAGS) $(tablegridview_LDFLAGS) $(LDFLAGS) -o $@
-am_tabletreeview_OBJECTS = tabletreeview-tabletreeview.$(OBJEXT) \
+am_tabletreeview_OBJECTS = tabletreeview-tabletreeview.$(OBJEXT)
+nodist_tabletreeview_OBJECTS =  \
 	tabletreeview-tabletreeview.moc.$(OBJEXT)
-tabletreeview_OBJECTS = $(am_tabletreeview_OBJECTS)
+tabletreeview_OBJECTS = $(am_tabletreeview_OBJECTS) \
+	$(nodist_tabletreeview_OBJECTS)
 tabletreeview_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/src/libqtlua.la
 tabletreeview_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
@@ -119,8 +124,9 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(itemtreeview_SOURCES) $(tablegridview_SOURCES) \
-	$(tabletreeview_SOURCES)
+SOURCES = $(itemtreeview_SOURCES) $(nodist_itemtreeview_SOURCES) \
+	$(tablegridview_SOURCES) $(nodist_tablegridview_SOURCES) \
+	$(tabletreeview_SOURCES) $(nodist_tabletreeview_SOURCES)
 DIST_SOURCES = $(itemtreeview_SOURCES) $(tablegridview_SOURCES) \
 	$(tabletreeview_SOURCES)
 ETAGS = etags
@@ -162,6 +168,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
+LIBRARY_VERSION = @LIBRARY_VERSION@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
@@ -265,17 +272,20 @@ SUFFIXES = .moc.cpp .moc.cc .moc.cxx .moc.C .h .hh \
 
 DISTCLEANFILES = $(BUILT_SOURCES)
 BUILT_SOURCES = itemtreeview.moc.cc tabletreeview.moc.cc tablegridview.moc.cc
-itemtreeview_SOURCES = itemtreeview.cc itemtreeview.moc.cc itemtreeview.hh
+itemtreeview_SOURCES = itemtreeview.cc itemtreeview.hh
+nodist_itemtreeview_SOURCES = itemtreeview.moc.cc
 itemtreeview_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 itemtreeview_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS) -I$(top_srcdir)/src
 itemtreeview_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags)
 itemtreeview_LDADD = $(QT_LIBS) $(LDADD) $(top_builddir)/src/libqtlua.la
-tabletreeview_SOURCES = tabletreeview.cc tabletreeview.moc.cc tabletreeview.hh
+tabletreeview_SOURCES = tabletreeview.cc tabletreeview.hh
+nodist_tabletreeview_SOURCES = tabletreeview.moc.cc
 tabletreeview_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 tabletreeview_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS) -I$(top_srcdir)/src
 tabletreeview_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags)
 tabletreeview_LDADD = $(QT_LIBS) $(LDADD) $(top_builddir)/src/libqtlua.la
-tablegridview_SOURCES = tablegridview.cc tablegridview.moc.cc tablegridview.hh
+tablegridview_SOURCES = tablegridview.cc tablegridview.hh
+nodist_tablegridview_SOURCES = tablegridview.moc.cc 
 tablegridview_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 tablegridview_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS) -I$(top_srcdir)/src
 tablegridview_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags)

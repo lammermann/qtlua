@@ -94,15 +94,7 @@ am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libqtlua_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am__objects_1 = libqtlua_la-qtluaconsole.moc.lo \
-	libqtlua_la-qtluaitemselectionmodel.moc.lo \
-	libqtlua_la-qtluaitemmodel.moc.lo \
-	libqtlua_la-qtluatabletreemodel.moc.lo \
-	libqtlua_la-qtluatabledialog.moc.lo \
-	libqtlua_la-qtluastate.moc.lo \
-	libqtlua_la-qtluatablegridmodel.moc.lo \
-	libqtlua_la-qtluaqtlib.moc.lo
-am_libqtlua_la_OBJECTS = $(am__objects_1) libqtlua_la-qtluaconsole.lo \
+am_libqtlua_la_OBJECTS = libqtlua_la-qtluaconsole.lo \
 	libqtlua_la-qtluaenum.lo libqtlua_la-qtluafunction.lo \
 	libqtlua_la-qtluaitem.lo libqtlua_la-qtluaitemmodel.lo \
 	libqtlua_la-qtlualistitem.lo libqtlua_la-qtlualistiterator.lo \
@@ -121,7 +113,17 @@ am_libqtlua_la_OBJECTS = $(am__objects_1) libqtlua_la-qtluaconsole.lo \
 	libqtlua_la-qtluatabletreemodel.lo \
 	libqtlua_la-qtluatabledialog.lo \
 	libqtlua_la-qtluatablegridmodel.lo
-libqtlua_la_OBJECTS = $(am_libqtlua_la_OBJECTS)
+am__objects_1 = libqtlua_la-qtluaconsole.moc.lo \
+	libqtlua_la-qtluaitemselectionmodel.moc.lo \
+	libqtlua_la-qtluaitemmodel.moc.lo \
+	libqtlua_la-qtluatabletreemodel.moc.lo \
+	libqtlua_la-qtluatabledialog.moc.lo \
+	libqtlua_la-qtluastate.moc.lo \
+	libqtlua_la-qtluatablegridmodel.moc.lo \
+	libqtlua_la-qtluaqtlib.moc.lo
+nodist_libqtlua_la_OBJECTS = $(am__objects_1)
+libqtlua_la_OBJECTS = $(am_libqtlua_la_OBJECTS) \
+	$(nodist_libqtlua_la_OBJECTS)
 libqtlua_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(libqtlua_la_CXXFLAGS) \
 	$(CXXFLAGS) $(libqtlua_la_LDFLAGS) $(LDFLAGS) -o $@
@@ -147,7 +149,7 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libqtlua_la_SOURCES)
+SOURCES = $(libqtlua_la_SOURCES) $(nodist_libqtlua_la_SOURCES)
 DIST_SOURCES = $(libqtlua_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
@@ -226,6 +228,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
+LIBRARY_VERSION = @LIBRARY_VERSION@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
@@ -336,7 +339,8 @@ BUILT_SOURCES = QtLua/qtluaconsole.moc.cc QtLua/qtluaitemselectionmodel.moc.cc \
 		QtLua/qtluatablegridmodel.moc.cc			\
 		qtluaqtlib.moc.cc
 
-libqtlua_la_SOURCES = $(BUILT_SOURCES) qtluaconsole.cc qtluaenum.cc		\
+nodist_libqtlua_la_SOURCES = $(BUILT_SOURCES)
+libqtlua_la_SOURCES = qtluaconsole.cc qtluaenum.cc				\
 	qtluafunction.cc qtluaitem.cc qtluaitemmodel.cc	qtlualistitem.cc	\
 	qtlualistiterator.cc qtluamember.cc qtluametacache.cc qtluamethod.cc	\
 	qtluaplugin.cc qtluaqobjectwrapper.cc qtluaqtlib.cc qtluastate.cc	\
@@ -348,7 +352,7 @@ libqtlua_la_SOURCES = $(BUILT_SOURCES) qtluaconsole.cc qtluaenum.cc		\
 
 libqtlua_la_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 libqtlua_la_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS)
-libqtlua_la_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags) -release $(PACKAGE_VERSION)
+libqtlua_la_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags) -release $(LIBRARY_VERSION)
 libqtlua_la_LIBADD = $(QT_LIBS) $(LIBADD)
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -482,62 +486,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
-
-libqtlua_la-qtluaconsole.moc.lo: QtLua/qtluaconsole.moc.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluaconsole.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluaconsole.moc.Tpo -c -o libqtlua_la-qtluaconsole.moc.lo `test -f 'QtLua/qtluaconsole.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaconsole.moc.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluaconsole.moc.Tpo $(DEPDIR)/libqtlua_la-qtluaconsole.moc.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluaconsole.moc.cc' object='libqtlua_la-qtluaconsole.moc.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluaconsole.moc.lo `test -f 'QtLua/qtluaconsole.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaconsole.moc.cc
-
-libqtlua_la-qtluaitemselectionmodel.moc.lo: QtLua/qtluaitemselectionmodel.moc.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluaitemselectionmodel.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluaitemselectionmodel.moc.Tpo -c -o libqtlua_la-qtluaitemselectionmodel.moc.lo `test -f 'QtLua/qtluaitemselectionmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaitemselectionmodel.moc.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluaitemselectionmodel.moc.Tpo $(DEPDIR)/libqtlua_la-qtluaitemselectionmodel.moc.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluaitemselectionmodel.moc.cc' object='libqtlua_la-qtluaitemselectionmodel.moc.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluaitemselectionmodel.moc.lo `test -f 'QtLua/qtluaitemselectionmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaitemselectionmodel.moc.cc
-
-libqtlua_la-qtluaitemmodel.moc.lo: QtLua/qtluaitemmodel.moc.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluaitemmodel.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluaitemmodel.moc.Tpo -c -o libqtlua_la-qtluaitemmodel.moc.lo `test -f 'QtLua/qtluaitemmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaitemmodel.moc.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluaitemmodel.moc.Tpo $(DEPDIR)/libqtlua_la-qtluaitemmodel.moc.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluaitemmodel.moc.cc' object='libqtlua_la-qtluaitemmodel.moc.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluaitemmodel.moc.lo `test -f 'QtLua/qtluaitemmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaitemmodel.moc.cc
-
-libqtlua_la-qtluatabletreemodel.moc.lo: QtLua/qtluatabletreemodel.moc.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluatabletreemodel.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluatabletreemodel.moc.Tpo -c -o libqtlua_la-qtluatabletreemodel.moc.lo `test -f 'QtLua/qtluatabletreemodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatabletreemodel.moc.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluatabletreemodel.moc.Tpo $(DEPDIR)/libqtlua_la-qtluatabletreemodel.moc.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluatabletreemodel.moc.cc' object='libqtlua_la-qtluatabletreemodel.moc.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluatabletreemodel.moc.lo `test -f 'QtLua/qtluatabletreemodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatabletreemodel.moc.cc
-
-libqtlua_la-qtluatabledialog.moc.lo: QtLua/qtluatabledialog.moc.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluatabledialog.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluatabledialog.moc.Tpo -c -o libqtlua_la-qtluatabledialog.moc.lo `test -f 'QtLua/qtluatabledialog.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatabledialog.moc.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluatabledialog.moc.Tpo $(DEPDIR)/libqtlua_la-qtluatabledialog.moc.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluatabledialog.moc.cc' object='libqtlua_la-qtluatabledialog.moc.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluatabledialog.moc.lo `test -f 'QtLua/qtluatabledialog.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatabledialog.moc.cc
-
-libqtlua_la-qtluastate.moc.lo: QtLua/qtluastate.moc.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluastate.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluastate.moc.Tpo -c -o libqtlua_la-qtluastate.moc.lo `test -f 'QtLua/qtluastate.moc.cc' || echo '$(srcdir)/'`QtLua/qtluastate.moc.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluastate.moc.Tpo $(DEPDIR)/libqtlua_la-qtluastate.moc.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluastate.moc.cc' object='libqtlua_la-qtluastate.moc.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluastate.moc.lo `test -f 'QtLua/qtluastate.moc.cc' || echo '$(srcdir)/'`QtLua/qtluastate.moc.cc
-
-libqtlua_la-qtluatablegridmodel.moc.lo: QtLua/qtluatablegridmodel.moc.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluatablegridmodel.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluatablegridmodel.moc.Tpo -c -o libqtlua_la-qtluatablegridmodel.moc.lo `test -f 'QtLua/qtluatablegridmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatablegridmodel.moc.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluatablegridmodel.moc.Tpo $(DEPDIR)/libqtlua_la-qtluatablegridmodel.moc.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluatablegridmodel.moc.cc' object='libqtlua_la-qtluatablegridmodel.moc.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluatablegridmodel.moc.lo `test -f 'QtLua/qtluatablegridmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatablegridmodel.moc.cc
-
-libqtlua_la-qtluaqtlib.moc.lo: qtluaqtlib.moc.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluaqtlib.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluaqtlib.moc.Tpo -c -o libqtlua_la-qtluaqtlib.moc.lo `test -f 'qtluaqtlib.moc.cc' || echo '$(srcdir)/'`qtluaqtlib.moc.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluaqtlib.moc.Tpo $(DEPDIR)/libqtlua_la-qtluaqtlib.moc.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='qtluaqtlib.moc.cc' object='libqtlua_la-qtluaqtlib.moc.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluaqtlib.moc.lo `test -f 'qtluaqtlib.moc.cc' || echo '$(srcdir)/'`qtluaqtlib.moc.cc
 
 libqtlua_la-qtluaconsole.lo: qtluaconsole.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluaconsole.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluaconsole.Tpo -c -o libqtlua_la-qtluaconsole.lo `test -f 'qtluaconsole.cc' || echo '$(srcdir)/'`qtluaconsole.cc
@@ -734,6 +682,62 @@ libqtlua_la-qtluatablegridmodel.lo: qtluatablegridmodel.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='qtluatablegridmodel.cc' object='libqtlua_la-qtluatablegridmodel.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluatablegridmodel.lo `test -f 'qtluatablegridmodel.cc' || echo '$(srcdir)/'`qtluatablegridmodel.cc
+
+libqtlua_la-qtluaconsole.moc.lo: QtLua/qtluaconsole.moc.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluaconsole.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluaconsole.moc.Tpo -c -o libqtlua_la-qtluaconsole.moc.lo `test -f 'QtLua/qtluaconsole.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaconsole.moc.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluaconsole.moc.Tpo $(DEPDIR)/libqtlua_la-qtluaconsole.moc.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluaconsole.moc.cc' object='libqtlua_la-qtluaconsole.moc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluaconsole.moc.lo `test -f 'QtLua/qtluaconsole.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaconsole.moc.cc
+
+libqtlua_la-qtluaitemselectionmodel.moc.lo: QtLua/qtluaitemselectionmodel.moc.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluaitemselectionmodel.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluaitemselectionmodel.moc.Tpo -c -o libqtlua_la-qtluaitemselectionmodel.moc.lo `test -f 'QtLua/qtluaitemselectionmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaitemselectionmodel.moc.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluaitemselectionmodel.moc.Tpo $(DEPDIR)/libqtlua_la-qtluaitemselectionmodel.moc.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluaitemselectionmodel.moc.cc' object='libqtlua_la-qtluaitemselectionmodel.moc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluaitemselectionmodel.moc.lo `test -f 'QtLua/qtluaitemselectionmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaitemselectionmodel.moc.cc
+
+libqtlua_la-qtluaitemmodel.moc.lo: QtLua/qtluaitemmodel.moc.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluaitemmodel.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluaitemmodel.moc.Tpo -c -o libqtlua_la-qtluaitemmodel.moc.lo `test -f 'QtLua/qtluaitemmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaitemmodel.moc.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluaitemmodel.moc.Tpo $(DEPDIR)/libqtlua_la-qtluaitemmodel.moc.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluaitemmodel.moc.cc' object='libqtlua_la-qtluaitemmodel.moc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluaitemmodel.moc.lo `test -f 'QtLua/qtluaitemmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluaitemmodel.moc.cc
+
+libqtlua_la-qtluatabletreemodel.moc.lo: QtLua/qtluatabletreemodel.moc.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluatabletreemodel.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluatabletreemodel.moc.Tpo -c -o libqtlua_la-qtluatabletreemodel.moc.lo `test -f 'QtLua/qtluatabletreemodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatabletreemodel.moc.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluatabletreemodel.moc.Tpo $(DEPDIR)/libqtlua_la-qtluatabletreemodel.moc.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluatabletreemodel.moc.cc' object='libqtlua_la-qtluatabletreemodel.moc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluatabletreemodel.moc.lo `test -f 'QtLua/qtluatabletreemodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatabletreemodel.moc.cc
+
+libqtlua_la-qtluatabledialog.moc.lo: QtLua/qtluatabledialog.moc.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluatabledialog.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluatabledialog.moc.Tpo -c -o libqtlua_la-qtluatabledialog.moc.lo `test -f 'QtLua/qtluatabledialog.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatabledialog.moc.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluatabledialog.moc.Tpo $(DEPDIR)/libqtlua_la-qtluatabledialog.moc.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluatabledialog.moc.cc' object='libqtlua_la-qtluatabledialog.moc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluatabledialog.moc.lo `test -f 'QtLua/qtluatabledialog.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatabledialog.moc.cc
+
+libqtlua_la-qtluastate.moc.lo: QtLua/qtluastate.moc.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluastate.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluastate.moc.Tpo -c -o libqtlua_la-qtluastate.moc.lo `test -f 'QtLua/qtluastate.moc.cc' || echo '$(srcdir)/'`QtLua/qtluastate.moc.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluastate.moc.Tpo $(DEPDIR)/libqtlua_la-qtluastate.moc.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluastate.moc.cc' object='libqtlua_la-qtluastate.moc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluastate.moc.lo `test -f 'QtLua/qtluastate.moc.cc' || echo '$(srcdir)/'`QtLua/qtluastate.moc.cc
+
+libqtlua_la-qtluatablegridmodel.moc.lo: QtLua/qtluatablegridmodel.moc.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluatablegridmodel.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluatablegridmodel.moc.Tpo -c -o libqtlua_la-qtluatablegridmodel.moc.lo `test -f 'QtLua/qtluatablegridmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatablegridmodel.moc.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluatablegridmodel.moc.Tpo $(DEPDIR)/libqtlua_la-qtluatablegridmodel.moc.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QtLua/qtluatablegridmodel.moc.cc' object='libqtlua_la-qtluatablegridmodel.moc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluatablegridmodel.moc.lo `test -f 'QtLua/qtluatablegridmodel.moc.cc' || echo '$(srcdir)/'`QtLua/qtluatablegridmodel.moc.cc
+
+libqtlua_la-qtluaqtlib.moc.lo: qtluaqtlib.moc.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -MT libqtlua_la-qtluaqtlib.moc.lo -MD -MP -MF $(DEPDIR)/libqtlua_la-qtluaqtlib.moc.Tpo -c -o libqtlua_la-qtluaqtlib.moc.lo `test -f 'qtluaqtlib.moc.cc' || echo '$(srcdir)/'`qtluaqtlib.moc.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libqtlua_la-qtluaqtlib.moc.Tpo $(DEPDIR)/libqtlua_la-qtluaqtlib.moc.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='qtluaqtlib.moc.cc' object='libqtlua_la-qtluaqtlib.moc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libqtlua_la_CPPFLAGS) $(CPPFLAGS) $(libqtlua_la_CXXFLAGS) $(CXXFLAGS) -c -o libqtlua_la-qtluaqtlib.moc.lo `test -f 'qtluaqtlib.moc.cc' || echo '$(srcdir)/'`qtluaqtlib.moc.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo

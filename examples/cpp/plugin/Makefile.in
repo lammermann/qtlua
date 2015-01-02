@@ -97,8 +97,10 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 plugin_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/src/libqtlua.la
-am_plugin_la_OBJECTS = plugin_la-plugin.lo plugin_la-plugin.moc.lo
-plugin_la_OBJECTS = $(am_plugin_la_OBJECTS)
+am_plugin_la_OBJECTS = plugin_la-plugin.lo
+nodist_plugin_la_OBJECTS = plugin_la-plugin.moc.lo
+plugin_la_OBJECTS = $(am_plugin_la_OBJECTS) \
+	$(nodist_plugin_la_OBJECTS)
 plugin_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(plugin_la_CXXFLAGS) \
 	$(CXXFLAGS) $(plugin_la_LDFLAGS) $(LDFLAGS) -o $@
@@ -132,7 +134,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(plugin_la_SOURCES) $(plugin_load_SOURCES)
+SOURCES = $(plugin_la_SOURCES) $(nodist_plugin_la_SOURCES) \
+	$(plugin_load_SOURCES)
 DIST_SOURCES = $(plugin_la_SOURCES) $(plugin_load_SOURCES)
 ETAGS = etags
 CTAGS = ctags
@@ -173,6 +176,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
+LIBRARY_VERSION = @LIBRARY_VERSION@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
@@ -276,7 +280,8 @@ SUFFIXES = .moc.cpp .moc.cc .moc.cxx .moc.C .h .hh \
 
 DISTCLEANFILES = $(BUILT_SOURCES)
 lib_LTLIBRARIES = plugin.la
-plugin_la_SOURCES = plugin.cc plugin.moc.cc plugin.hh
+plugin_la_SOURCES = plugin.cc plugin.hh
+nodist_plugin_la_SOURCES = plugin.moc.cc
 plugin_la_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 plugin_la_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS)
 plugin_la_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags) -module
