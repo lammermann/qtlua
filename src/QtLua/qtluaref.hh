@@ -29,7 +29,7 @@ namespace QtLua {
 #ifndef QTLUA_NO_DEBUG
 
   /**
-   * @short Guard class, assert allocated RefObj based objects get free'd (internal)
+   * @short Guard class, assert allocated RefObj based objects get free'd
    * @module {Base}
    * @internal
    * @header QtLua/Ref
@@ -321,7 +321,7 @@ namespace QtLua {
 
 
   /**
-   * @short Referenced objects base class (internal)
+   * @short Referenced objects base class
    * @header QtLua/Ref
    * @module {Base}
    * @internal
@@ -367,7 +367,10 @@ namespace QtLua {
     void _inc() const
     {
       Refobj<X> *y = const_cast<Refobj<X>*>(this);
+#if 0
       y->ref_inc(++y->_qtlua_Ref_count);
+#endif
+      ++y->_qtlua_Ref_count;
     }
 
     /** @internal */
@@ -389,13 +392,17 @@ namespace QtLua {
       y->ref_drop(count);
     }
 
-    /** This function is called when reference count has just increased.
+#if 0
+    /* This function is called when reference count has just increased.
 
 	@param Count new reference count.
     */
+
     virtual void ref_inc(int count)
     {
+      Q_UNUSED(count);
     }
+#endif
 
     /** This functions is called when reference count has just decreased.
 
@@ -403,6 +410,7 @@ namespace QtLua {
     */
     virtual void ref_drop(int count)
     {
+      Q_UNUSED(count);
     }
 
     /** Get object current reference count */

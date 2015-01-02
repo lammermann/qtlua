@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <meta name="Generator" content="MKDOC " />
+ <title>QtLua library manual </title>
+ <link rel="stylesheet" href="mkdoc.css" />
+ <style type="text/css">
+
+  .sec_hidden { display: none; }
+  .sec_shown {}
+ </style>
+</head><body>
+<div class="page"><div class="head"><img class="headlogo" src="logo-small.png" alt="logo" /><div class="headlinks"><a href="Table_of_contents.html">Table of contents</a>
+ &nbsp; <a href="API_documentation.html">API documentation</a>
+</div><div class="navlinks"><a href="index.html" accesskey="t">Top</a> &nbsp; <a href="UserData_class_reference.html"  accesskey="p" id="nav_prev">Previous </a> &nbsp; <a href="API_documentation.html"  accesskey="u" id="nav_up"> Up </a> &nbsp; <a href="UserObject_UserObjectIterator_internal_class_members.html"  accesskey="n" id="nav_next"> Next</a></div>
+</div><div class="content"><div style="clear: both; height:20px;"></div>
+<h1>UserObject class reference<br /><span class="subtitle">
+[Base module]</span>
+</h1><div class="sec_content1">
+<div style="clear: both; height:20px;"></div>
+</div><h2>Declaration<a href="#_Declaration24" id="_Declaration24" class="hover_link">&nbsp;&nbsp;</a></h2><div class="sec_content2">
+<div class="codebox"><code><span class="codedir">#include</span> &lt;QtLua/UserObject&gt;<br /><br /><span class="codekw">namespace</span> QtLua {<br />  <span class="codekw">template</span> &lt;<span class="codekw">typename</span> T&gt; <span class="codekw">class</span> UserObject;<br />};<br /></code></div><p> This class is a member of the <a href="QtLua_namespace_reference.html">QtLua</a> namespace.</p>
+</div><h2>Description<a href="#_Description25" id="_Description25" class="hover_link">&nbsp;&nbsp;</a></h2><div class="sec_content2">
+<p>This base class can be used to create C++ objects with named properties accessible from lua script. This is a lightweight alternative to writting a <span class="ext_link"><a href="http://doc.trolltech.com/4.5/qobject.html">QObject</a></span> based class when only <span class="tt">set/get</span> properties mechanism is needed.</p>
+<p>Each property can have a <span class="tt">set</span> and <span class="tt">get</span> accessor functions registered through a static const array. Property member and accessor functions can be user defined or declared using the <a href="UserObject_class_reference.html#_360">QTLUA_PROPERTY_GET</a> , <a href="UserObject_class_reference.html#_361">QTLUA_PROPERTY_SET</a> , <a href="UserObject_class_reference.html#_356">QTLUA_PROPERTY_ACCESSORS</a> or <a href="UserObject_class_reference.html#_355">QTLUA_PROPERTY</a> macros as shown on the example below :</p>
+<div class="codebox"><code><span class="codecmt">// code from <a href="http://svn.savannah.gnu.org/viewvc/trunk/libqtlua/examples/cpp/userdata/userobject.cc?root=libqtlua&revision=0&view=annotate#l24">examples/cpp/userdata/userobject.cc:24</a></span><br /><br /><span class="codekw">class</span> Test : <span class="codekw">public</span> <a class="coderef" href="UserObject_class_reference.html">QtLua::UserObject</a>&lt;Test&gt;<br />{<br />  <a class="coderef" href="UserObject_class_reference.html#_355">QTLUA_PROPERTY</a>(<span class="codetype">int</span>, _value);<br /><br /><span class="codekw">public</span>:<br />  Test(<span class="codetype">int</span> value)<br />    : _value(value)<br />  {<br />  }<br /><br />  <span class="codekw">static</span> <span class="codekw">const</span> <a class="coderef" href="UserObject_class_reference.html#_363">member_s</a> member_table[];<br />};<br /><br /><span class="codekw">const</span> Test::member_s Test::member_table[] = {<br />  <a class="coderef" href="UserObject_class_reference.html#_357">QTLUA_PROPERTY_ENTRY</a>(Test, _value),<br />};<br /></code></div></div><h2>Inheritance<a href="#_Inheritance24" id="_Inheritance24" class="hover_link">&nbsp;&nbsp;</a></h2><div class="sec_content2">
+<ul><li><a href="UserData_class_reference.html">UserData</a></li>
+</ul>
+</div><h2>Members<a href="#_Members24" id="_Members24" class="hover_link">&nbsp;&nbsp;</a></h2><div class="sec_content2">
+</div><h3>Inherited members<a href="#_Inherited_members12" id="_Inherited_members12" class="hover_link">&nbsp;&nbsp;</a></h3><div class="sec_content3">
+<ul><li>19 members inherited from <a href="UserData_class_reference.html">UserData</a></li>
+</ul>
+</div><h3>Types<a href="#_Types15" id="_Types15" class="hover_link">&nbsp;&nbsp;</a></h3><div class="sec_content3">
+<ul><li><span class="listitem"><span class="member_prefix">typedef <em> [...] </em> </span><span class="member_signature"><span class="member_name"><a href="UserObject_class_reference.html#_362">const_ptr</a></span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">struct </span><span class="member_signature"><span class="member_name"><a href="UserObject_class_reference.html#_363">member_s</a></span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">typedef <em> [...] </em> </span><span class="member_signature"><span class="member_name"><a href="UserObject_class_reference.html#_367">ptr</a></span></span></span></li>
+</ul>
+</div><h3>Functions<a href="#_Functions23" id="_Functions23" class="hover_link">&nbsp;&nbsp;</a></h3><div class="sec_content3">
+<ul><li><span class="listitem"><span class="member_prefix">virtual Value </span><span class="member_signature"><span class="member_name"><a href="UserObject_class_reference.html#_364">meta_index</a></span>(<span class="member_params"><span class="member_param">State &amp;ls, </span><span class="member_param">const Value &amp;key</span>)</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">virtual void </span><span class="member_signature"><span class="member_name"><a href="UserObject_class_reference.html#_365">meta_newindex</a></span>(<span class="member_params"><span class="member_param">State &amp;ls, </span><span class="member_param">const Value &amp;key, </span><span class="member_param">const Value &amp;value</span>)</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">virtual Ref&lt;Iterator&gt; </span><span class="member_signature"><span class="member_name"><a href="UserObject_class_reference.html#_366">new_iterator</a></span>(<span class="member_params"><span class="member_param">State &amp;ls</span>)</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">virtual bool </span><span class="member_signature"><span class="member_name"><a href="UserObject_class_reference.html#_368">support</a></span>(<span class="member_params"><span class="member_param">Value::Operation c</span>) const</span></span></span></li>
+</ul>
+</div><h3>Macros<a href="#_Macros2" id="_Macros2" class="hover_link">&nbsp;&nbsp;</a></h3><div class="sec_content3">
+<ul><li><span class="listitem"><a href="UserObject_class_reference.html#_355">QTLUA_PROPERTY</a></span></li>
+<li><span class="listitem"><a href="UserObject_class_reference.html#_356">QTLUA_PROPERTY_ACCESSORS</a></span></li>
+<li><span class="listitem"><a href="UserObject_class_reference.html#_357">QTLUA_PROPERTY_ENTRY</a></span></li>
+<li><span class="listitem"><a href="UserObject_class_reference.html#_358">QTLUA_PROPERTY_ENTRY_GET</a></span></li>
+<li><span class="listitem"><a href="UserObject_class_reference.html#_359">QTLUA_PROPERTY_ENTRY_SET</a></span></li>
+<li><span class="listitem"><a href="UserObject_class_reference.html#_360">QTLUA_PROPERTY_GET</a></span></li>
+<li><span class="listitem"><a href="UserObject_class_reference.html#_361">QTLUA_PROPERTY_SET</a></span></li>
+</ul>
+</div><h2>Members detail<a href="#_Members_detail24" id="_Members_detail24" class="hover_link">&nbsp;&nbsp;</a></h2><div class="sec_content2">
+</div><div class="divmember public_member"><h3><span class="member_prefix">#define </span><span class="member_signature"><span class="member_name">QTLUA_PROPERTY</span>(type, member)</span><a href="#_355" id="_355" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Declare a member of given type and define a simple inline accessors function for the specified member</p>
+<p>This macro expands to:</p>
+<div class="codebox"><code>  type member;                                        <br />  <a class="coderef" href="UserObject_class_reference.html#_356">QTLUA_PROPERTY_ACCESSORS</a>(member);</code></div></div><div class="divmember public_member"><h3><span class="member_prefix">#define </span><span class="member_signature"><span class="member_name">QTLUA_PROPERTY_ACCESSORS</span>(member)</span><a href="#_356" id="_356" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Define simple inline accessors function for the specified member</p>
+<p>This macro expands to:</p>
+<div class="codebox"><code>  <a class="coderef" href="UserObject_class_reference.html#_360">QTLUA_PROPERTY_GET</a>(member)                        <br />  <a class="coderef" href="UserObject_class_reference.html#_361">QTLUA_PROPERTY_SET</a>(member)</code></div></div><div class="divmember public_member"><h3><span class="member_prefix">#define </span><span class="member_signature"><span class="member_name">QTLUA_PROPERTY_ENTRY</span>(class_, member)</span><a href="#_357" id="_357" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Property table entry with get and set accessors</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">#define </span><span class="member_signature"><span class="member_name">QTLUA_PROPERTY_ENTRY_GET</span>(class_, member)</span><a href="#_358" id="_358" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Property table entry with get accessor only</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">#define </span><span class="member_signature"><span class="member_name">QTLUA_PROPERTY_ENTRY_SET</span>(class_, member)</span><a href="#_359" id="_359" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Property table entry with set accessor only</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">#define </span><span class="member_signature"><span class="member_name">QTLUA_PROPERTY_GET</span>(member)</span><a href="#_360" id="_360" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Define a simple inline get accessor function for the specified member</p>
+<p>This macro expands to:</p>
+<div class="codebox"><code>  <span class="codekw">inline</span> <a class="coderef" href="Value_class_reference.html">QtLua::Value</a> get_##member(<a class="coderef" href="State_class_reference.html">QtLua::State</a> &amp;ls)        <br />  {                                                <br />    <span class="codekw">return</span> <a class="coderef" href="Value_class_reference.html">QtLua::Value</a>(ls, member);                <br />  }</code></div></div><div class="divmember public_member"><h3><span class="member_prefix">#define </span><span class="member_signature"><span class="member_name">QTLUA_PROPERTY_SET</span>(member)</span><a href="#_361" id="_361" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Define a simple inline set accessor function for the specified member</p>
+<p>This macro expands to:</p>
+<div class="codebox"><code>  <span class="codekw">inline</span> <span class="codetype">void</span> set_##member(<a class="coderef" href="State_class_reference.html">QtLua::State</a> &amp;ls, <span class="codekw">const</span> <a class="coderef" href="Value_class_reference.html">QtLua::Value</a> &amp;value)<br />  {                                                                <br />    member = value;                                                <br />  }</code></div></div><div class="divmember public_member"><h3><span class="member_prefix">typedef <a href="Ref_class_reference.html">Ref</a>&lt;const <a href="UserObject_class_reference.html">UserObject</a>, <a href="UserObject_class_reference.html">UserObject</a>&gt; </span><span class="member_signature"><span class="member_name">const_ptr</span></span><a href="#_362" id="_362" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Shortcut for <a href="Ref_class_reference.html">Ref</a> smart pointer class to UserObject type provided for convenience</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">struct </span><span class="member_signature"><span class="member_name">member_s</span></span><a href="#_363" id="_363" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Property member entry</p>
+<div class="table_frame"><table class="table"><tr class="tr_head"><th style="width:30%;">Field</th><th style="width:70%;">Description</th></tr>
+<tr class="tr1"><td><span class="member_prefix">const char *</span><span class="member_signature"><span class="member_name"><a href="UserObject_class_reference.html#_363">name</a></span></span>;</td><td>Lua property name<br />
+</td></tr>
+<tr class="tr0"><td><span class="member_prefix">void (T::*</span><span class="member_signature"><span class="member_name"><a href="UserObject_class_reference.html#_363">set</a></span>)(<span class="member_params"><span class="member_param"><a href="State_class_reference.html">State</a> &amp;ls, </span><span class="member_param">const <a href="Value_class_reference.html">Value</a> &amp;value</span>) </span></span>;</td><td>Pointer to property set accesor function for lua<br />
+</td></tr>
+<tr class="tr1 tr_last"><td><span class="member_prefix"><a href="Value_class_reference.html">Value</a> (T::*</span><span class="member_signature"><span class="member_name"><a href="UserObject_class_reference.html#_363">get</a></span>)(<span class="member_params"><span class="member_param"><a href="State_class_reference.html">State</a> &amp;ls</span>) </span></span>;</td><td>Pointer to property get accesor function for lua<br />
+</td></tr></table></div>
+</div><div class="divmember public_member"><h3><span class="member_prefix">virtual <a href="Value_class_reference.html">Value</a> </span><span class="member_signature"><span class="member_name">meta_index</span>(<span class="member_params"><span class="member_param"><a href="State_class_reference.html">State</a> &amp;ls, </span><span class="member_param">const <a href="Value_class_reference.html">Value</a> &amp;key</span>)</span></span><a href="#_364" id="_364" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>This virtual function overrides the <code><a href="UserData_class_reference.html#_346">meta_index</a></code> virtual function defined in the <code><a href="UserData_class_reference.html">UserData</a></code> base class.</p>
+<p><span class="nodoc">Documentation inherited from base class:</span></p>
+<p>This functions is called when a table read access operation is attempted on a userdata object. The default implementation throws an error message. The UserData::<a href="UserData_class_reference.html#_353">support</a> function should be reimplemented along with this function.</p>
+<p>Parameters list:</p>
+<ul><li>key: Value used as table index. </li>
+</ul>
+<p>The return value is Table access result value.</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">virtual void </span><span class="member_signature"><span class="member_name">meta_newindex</span>(<span class="member_params"><span class="member_param"><a href="State_class_reference.html">State</a> &amp;ls, </span><span class="member_param">const <a href="Value_class_reference.html">Value</a> &amp;key, </span><span class="member_param">const <a href="Value_class_reference.html">Value</a> &amp;value</span>)</span></span><a href="#_365" id="_365" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>This virtual function overrides the <code><a href="UserData_class_reference.html#_347">meta_newindex</a></code> virtual function defined in the <code><a href="UserData_class_reference.html">UserData</a></code> base class.</p>
+<p><span class="nodoc">Documentation inherited from base class:</span></p>
+<p>This functions is called when a table write access operation is attempted on a userdata object. The default implementation throws an error message. The UserData::<a href="UserData_class_reference.html#_353">support</a> function should be reimplemented along with this function.</p>
+<p>Parameters list:</p>
+<ul><li>key: Value used as table index. </li>
+<li>value: Value to put in table.</li>
+</ul>
+</div><div class="divmember public_member"><h3><span class="member_prefix">virtual <a href="Ref_class_reference.html">Ref</a>&lt;<a href="Iterator_class_reference.html">Iterator</a>&gt; </span><span class="member_signature"><span class="member_name">new_iterator</span>(<span class="member_params"><span class="member_param"><a href="State_class_reference.html">State</a> &amp;ls</span>)</span></span><a href="#_366" id="_366" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>This virtual function overrides the <code><a href="UserData_class_reference.html#_349">new_iterator</a></code> virtual function defined in the <code><a href="UserData_class_reference.html">UserData</a></code> base class.</p>
+<p><span class="nodoc">Documentation inherited from base class:</span></p>
+<p>This function may return an <a href="Iterator_class_reference.html">Iterator</a> object used to iterate over an userdata object. The default implementation throws an error message. The UserData::<a href="UserData_class_reference.html#_353">support</a> function should be reimplemented along with this function.</p>
+<p>The return value is an <a href="Iterator_class_reference.html">Iterator</a> based iterator object.</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">typedef <a href="Ref_class_reference.html">Ref</a>&lt;<a href="UserObject_class_reference.html">UserObject</a>, <a href="UserObject_class_reference.html">UserObject</a>&gt; </span><span class="member_signature"><span class="member_name">ptr</span></span><a href="#_367" id="_367" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Shortcut for <a href="Ref_class_reference.html">Ref</a> smart pointer class to UserObject type provided for convenience</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">virtual bool </span><span class="member_signature"><span class="member_name">support</span>(<span class="member_params"><span class="member_param">Value::<a href="Value_class_reference.html#_393">Operation</a> c</span>) const</span></span><a href="#_368" id="_368" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>This virtual function overrides the <code><a href="UserData_class_reference.html#_353">support</a></code> virtual function defined in the <code><a href="UserData_class_reference.html">UserData</a></code> base class.</p>
+<p><span class="nodoc">Documentation inherited from base class:</span></p>
+<p>Check given operation support. </p>
+<p>See also Value::<a href="Value_class_reference.html#_445">support</a> function.</p>
+</div></div></div><div class="foot"><p class="generated"><a style="float: right;" href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.0 Strict</a>Generated by diaxen on Mon Aug 15 03:23:06 2011 using <a href="http://www.nongnu.org/mkdoc/">MkDoc</a></p></div></body></html>

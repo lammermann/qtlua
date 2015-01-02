@@ -109,12 +109,6 @@ namespace QtLua {
     *this = obj;
   }
 
-  Value::Value(lua_State *st, ValueType type)
-    : _st(_st)
-  {
-    init_type_value(type);
-  }
-
   Value::Value(const State &ls, ValueType type)
     : _st(ls._st)
   {
@@ -286,7 +280,12 @@ namespace QtLua {
 
   Value::operator QString () const
   {
-    return to_string();
+    return to_string().to_qstring();
+  }
+
+  QString Value::to_qstring() const
+  {
+    return to_string().to_qstring();
   }
 
   Value::operator double () const

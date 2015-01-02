@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <meta name="Generator" content="MKDOC " />
+ <title>QtLua library manual </title>
+ <link rel="stylesheet" href="mkdoc.css" />
+ <style type="text/css">
+
+  .sec_hidden { display: none; }
+  .sec_shown {}
+ </style>
+</head><body>
+<div class="page"><div class="head"><img class="headlogo" src="logo-small.png" alt="logo" /><div class="headlinks"><a href="Table_of_contents.html">Table of contents</a>
+ &nbsp; <a href="API_documentation.html">API documentation</a>
+</div><div class="navlinks"><a href="index.html" accesskey="t">Top</a> &nbsp; <a href="Function_class_reference.html"  accesskey="p" id="nav_prev">Previous </a> &nbsp; <a href="API_documentation.html"  accesskey="u" id="nav_up"> Up </a> &nbsp; <a href="ItemModel_class_reference.html"  accesskey="n" id="nav_next"> Next</a></div>
+</div><div class="content"><div style="clear: both; height:20px;"></div>
+<h1>Item class reference<br /><span class="subtitle">
+[Model/View module]</span>
+</h1><div class="sec_content1">
+<div style="clear: both; height:20px;"></div>
+</div><h2>Declaration<a href="#_Declaration2" id="_Declaration2" class="hover_link">&nbsp;&nbsp;</a></h2><div class="sec_content2">
+<div class="codebox"><code><span class="codedir">#include</span> &lt;QtLua/Item&gt;<br /><br /><span class="codekw">namespace</span> QtLua {<br />  <span class="codekw">class</span> Item;<br />};<br /></code></div><p> This class is a member of the <a href="QtLua_namespace_reference.html">QtLua</a> namespace.</p>
+</div><h2>Description<a href="#_Description3" id="_Description3" class="hover_link">&nbsp;&nbsp;</a></h2><div class="sec_content2">
+<p>This class together with the <a href="ListItem_class_reference.html">ListItem</a> and <a href="ItemModel_class_reference.html">ItemModel</a> classes enable easy use of list or hierarchical data structures that can be viewed and modified from lua script, Qt view widgets and C++ code.</p>
+<p>This class implement the generic hierarchical data structure leaf node. It must be used as a base class for objects which may be exposed to Qt views via the <a href="ItemModel_class_reference.html">ItemModel</a> class.</p>
+<p><a href="Item_class_reference.html">Item</a> objects can be inserted in and removed from <a href="ListItem_class_reference.html">ListItem</a> objects from the C++ code with the Item::<a href="Item_class_reference.html#_32">insert</a> and Item::<a href="Item_class_reference.html#_39">remove</a> functions. </p>
+<p>Each <a href="Item_class_reference.html">Item</a> object have a node name used for display in Qt views and access from lua script. This name can be accessed from C++ code with the Item::<a href="Item_class_reference.html#_30">get_name</a> and Item::<a href="Item_class_reference.html#_40">set_name</a> functions.</p>
+<p>Each data structure modification by lua script or user view interaction may be allowed or denied by reimplemention of Item::<a href="Item_class_reference.html#_33">is_move_allowed</a>, Item::<a href="Item_class_reference.html#_35">is_rename_allowed</a>, Item::<a href="Item_class_reference.html#_34">is_remove_allowed</a>, and Item::<a href="Item_class_reference.html#_36">is_replace_allowed</a> functions.</p>
+<p>See <a href="ItemModel_class_reference.html">ItemModel</a> for example.</p>
+</div><h2>Inheritance<a href="#_Inheritance2" id="_Inheritance2" class="hover_link">&nbsp;&nbsp;</a></h2><div class="sec_content2">
+<ul><li><a href="UserData_class_reference.html">UserData</a></li>
+</ul>
+</div><h2>Members<a href="#_Members2" id="_Members2" class="hover_link">&nbsp;&nbsp;</a></h2><div class="sec_content2">
+</div><h3>Inherited members<a href="#_Inherited_members1" id="_Inherited_members1" class="hover_link">&nbsp;&nbsp;</a></h3><div class="sec_content3">
+<ul><li>19 members inherited from <a href="UserData_class_reference.html">UserData</a></li>
+</ul>
+</div><h3>Types<a href="#_Types1" id="_Types1" class="hover_link">&nbsp;&nbsp;</a></h3><div class="sec_content3">
+<ul><li><span class="listitem"><span class="member_prefix">typedef <em> [...] </em> </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_28">const_ptr</a></span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">typedef <em> [...] </em> </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_38">ptr</a></span></span></span></li>
+</ul>
+</div><h3>Functions<a href="#_Functions2" id="_Functions2" class="hover_link">&nbsp;&nbsp;</a></h3><div class="sec_content3">
+<ul><li><span class="listitem"><span class="member_prefix"></span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_25">Item</a></span>(<span class="member_params"><span class="member_param">const String &amp;name = <em>[...]</em></span>)</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix"></span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_26">Item</a></span>(<span class="member_params"><span class="member_param">const Item &amp;item</span>)</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix"></span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_27">~Item</a></span>(<span class="member_params">)</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">const String &amp; </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_30">get_name</a></span>(<span class="member_params">) const</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">ListItem * </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_31">get_parent</a></span>(<span class="member_params">) const</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">void </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_32">insert</a></span>(<span class="member_params"><span class="member_param">const Ref&lt;ListItem&gt; &amp;parent</span>)</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">void </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_37">move</a></span>(<span class="member_params"><span class="member_param">const Ref&lt;ListItem&gt; &amp;parent</span>)</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">void </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_39">remove</a></span>(<span class="member_params">)</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">void </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_40">set_name</a></span>(<span class="member_params"><span class="member_param">const String &amp;name</span>)</span></span></span></li>
+</ul>
+</div><h3>Protected functions<a href="#_Protected_functions" id="_Protected_functions" class="hover_link">&nbsp;&nbsp;</a></h3><div class="sec_content3">
+<ul><li><span class="listitem"><span class="member_prefix">virtual QIcon &amp; </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_29">get_icon</a></span>(<span class="member_params">) const</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">virtual bool </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_33">is_move_allowed</a></span>(<span class="member_params">) const</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">virtual bool </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_34">is_remove_allowed</a></span>(<span class="member_params">) const</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">virtual bool </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_35">is_rename_allowed</a></span>(<span class="member_params">) const</span></span></span></li>
+<li><span class="listitem"><span class="member_prefix">virtual bool </span><span class="member_signature"><span class="member_name"><a href="Item_class_reference.html#_36">is_replace_allowed</a></span>(<span class="member_params">) const</span></span></span></li>
+</ul>
+</div><h2>Members detail<a href="#_Members_detail2" id="_Members_detail2" class="hover_link">&nbsp;&nbsp;</a></h2><div class="sec_content2">
+</div><div class="divmember public_member"><h3><span class="member_prefix"></span><span class="member_signature"><span class="member_name">Item</span>(<span class="member_params"><span class="member_param">const <a href="String_class_reference.html">String</a> &amp;name = &quot;&quot;</span>)</span></span><a href="#_25" id="_25" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Create a new Item with given name</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix"></span><span class="member_signature"><span class="member_name">Item</span>(<span class="member_params"><span class="member_param">const <a href="Item_class_reference.html">Item</a> &amp;item</span>)</span></span><a href="#_26" id="_26" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p><span class="nodoc">No documentation available</span></p>
+</div><div class="divmember public_member"><h3><span class="member_prefix"></span><span class="member_signature"><span class="member_name">~Item</span>(<span class="member_params">)</span></span><a href="#_27" id="_27" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p><span class="nodoc">No documentation available</span></p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">typedef <a href="Ref_class_reference.html">Ref</a>&lt;const <a href="Item_class_reference.html">Item</a>, <a href="Item_class_reference.html">Item</a>&gt; </span><span class="member_signature"><span class="member_name">const_ptr</span></span><a href="#_28" id="_28" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Shortcut for <a href="Ref_class_reference.html">Ref</a> smart pointer class to Item type provided for convenience</p>
+</div><div class="divmember protected_member"><h3><span class="member_prefix">virtual <span class="ext_link"><a href="http://doc.trolltech.com/4.5/qicon.html">QIcon</a></span> &amp; </span><span class="member_signature"><span class="member_name">get_icon</span>(<span class="member_params">) const</span></span><a href="#_29" id="_29" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>This member access is protected.</p>
+<p>Must return icon decoration to use for this node.</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">const <a href="String_class_reference.html">String</a> &amp; </span><span class="member_signature"><span class="member_name">get_name</span>(<span class="member_params">) const</span></span><a href="#_30" id="_30" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Get item name</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix"><a href="ListItem_class_reference.html">ListItem</a> * </span><span class="member_signature"><span class="member_name">get_parent</span>(<span class="member_params">) const</span></span><a href="#_31" id="_31" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Get pointer to parent container</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">void </span><span class="member_signature"><span class="member_name">insert</span>(<span class="member_params"><span class="member_param">const <a href="Ref_class_reference.html">Ref</a>&lt;<a href="ListItem_class_reference.html">ListItem</a>&gt; &amp;parent</span>)</span></span><a href="#_32" id="_32" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Insert this item in parent container</p>
+</div><div class="divmember protected_member"><h3><span class="member_prefix">virtual bool </span><span class="member_signature"><span class="member_name">is_move_allowed</span>(<span class="member_params">) const</span></span><a href="#_33" id="_33" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>This member access is protected.</p>
+<p>Must return true if item can change parent containers. (default is true)</p>
+</div><div class="divmember protected_member"><h3><span class="member_prefix">virtual bool </span><span class="member_signature"><span class="member_name">is_remove_allowed</span>(<span class="member_params">) const</span></span><a href="#_34" id="_34" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>This member access is protected.</p>
+<p>Must return true if item can be removed from container. (default is true)</p>
+</div><div class="divmember protected_member"><h3><span class="member_prefix">virtual bool </span><span class="member_signature"><span class="member_name">is_rename_allowed</span>(<span class="member_params">) const</span></span><a href="#_35" id="_35" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>This member access is protected.</p>
+<p>Must return true if item can renamed. (default is true)</p>
+</div><div class="divmember protected_member"><h3><span class="member_prefix">virtual bool </span><span class="member_signature"><span class="member_name">is_replace_allowed</span>(<span class="member_params">) const</span></span><a href="#_36" id="_36" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>This member access is protected.</p>
+<p>Must return true if item can be removed by replacement by an other item (default is is_remove_allowed())</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">void </span><span class="member_signature"><span class="member_name">move</span>(<span class="member_params"><span class="member_param">const <a href="Ref_class_reference.html">Ref</a>&lt;<a href="ListItem_class_reference.html">ListItem</a>&gt; &amp;parent</span>)</span></span><a href="#_37" id="_37" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Insert this item in parent container, remove from existing parent if any</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">typedef <a href="Ref_class_reference.html">Ref</a>&lt;<a href="Item_class_reference.html">Item</a>, <a href="Item_class_reference.html">Item</a>&gt; </span><span class="member_signature"><span class="member_name">ptr</span></span><a href="#_38" id="_38" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Shortcut for <a href="Ref_class_reference.html">Ref</a> smart pointer class to Item type provided for convenience</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">void </span><span class="member_signature"><span class="member_name">remove</span>(<span class="member_params">)</span></span><a href="#_39" id="_39" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Remove this item from its container</p>
+</div><div class="divmember public_member"><h3><span class="member_prefix">void </span><span class="member_signature"><span class="member_name">set_name</span>(<span class="member_params"><span class="member_param">const <a href="String_class_reference.html">String</a> &amp;name</span>)</span></span><a href="#_40" id="_40" class="hover_link">&nbsp;&nbsp;</a></h3></div><div class="sec_content3">
+<p>Set item name. Name may be mangled to be a valid lua identifier.</p>
+</div></div></div><div class="foot"><p class="generated"><a style="float: right;" href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.0 Strict</a>Generated by diaxen on Mon Aug 15 03:23:06 2011 using <a href="http://www.nongnu.org/mkdoc/">MkDoc</a></p></div></body></html>
