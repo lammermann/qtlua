@@ -53,7 +53,7 @@ build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/build/autotroll.mk
-noinst_PROGRAMS = function$(EXEEXT) ref$(EXEEXT)
+noinst_PROGRAMS = function$(EXEEXT) ref$(EXEEXT) userobject$(EXEEXT)
 subdir = examples/cpp/userdata
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/autotroll.m4 \
@@ -79,6 +79,13 @@ ref_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 ref_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(ref_CXXFLAGS) $(CXXFLAGS) \
 	$(ref_LDFLAGS) $(LDFLAGS) -o $@
+am_userobject_OBJECTS = userobject-userobject.$(OBJEXT)
+userobject_OBJECTS = $(am_userobject_OBJECTS)
+userobject_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(top_builddir)/src/libqtlua.la
+userobject_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(userobject_CXXFLAGS) \
+	$(CXXFLAGS) $(userobject_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/build/depcomp
 am__depfiles_maybe = depfiles
@@ -91,8 +98,9 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(function_SOURCES) $(ref_SOURCES)
-DIST_SOURCES = $(function_SOURCES) $(ref_SOURCES)
+SOURCES = $(function_SOURCES) $(ref_SOURCES) $(userobject_SOURCES)
+DIST_SOURCES = $(function_SOURCES) $(ref_SOURCES) \
+	$(userobject_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -217,6 +225,7 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
@@ -231,6 +240,11 @@ function_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 function_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS) -I$(top_srcdir)/src
 function_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags)
 function_LDADD = $(QT_LIBS) $(LDADD) $(top_builddir)/src/libqtlua.la
+userobject_SOURCES = userobject.cc
+userobject_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
+userobject_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS) -I$(top_srcdir)/src
+userobject_LDFLAGS = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags)
+userobject_LDADD = $(QT_LIBS) $(LDADD) $(top_builddir)/src/libqtlua.la
 ref_SOURCES = ref.cc
 ref_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 ref_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS) -I$(top_srcdir)/src
@@ -282,6 +296,9 @@ function$(EXEEXT): $(function_OBJECTS) $(function_DEPENDENCIES)
 ref$(EXEEXT): $(ref_OBJECTS) $(ref_DEPENDENCIES) 
 	@rm -f ref$(EXEEXT)
 	$(ref_LINK) $(ref_OBJECTS) $(ref_LDADD) $(LIBS)
+userobject$(EXEEXT): $(userobject_OBJECTS) $(userobject_DEPENDENCIES) 
+	@rm -f userobject$(EXEEXT)
+	$(userobject_LINK) $(userobject_OBJECTS) $(userobject_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -291,6 +308,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/function-function.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ref-ref.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/userobject-userobject.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -340,6 +358,20 @@ ref-ref.obj: ref.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ref.cc' object='ref-ref.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ref_CPPFLAGS) $(CPPFLAGS) $(ref_CXXFLAGS) $(CXXFLAGS) -c -o ref-ref.obj `if test -f 'ref.cc'; then $(CYGPATH_W) 'ref.cc'; else $(CYGPATH_W) '$(srcdir)/ref.cc'; fi`
+
+userobject-userobject.o: userobject.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(userobject_CPPFLAGS) $(CPPFLAGS) $(userobject_CXXFLAGS) $(CXXFLAGS) -MT userobject-userobject.o -MD -MP -MF $(DEPDIR)/userobject-userobject.Tpo -c -o userobject-userobject.o `test -f 'userobject.cc' || echo '$(srcdir)/'`userobject.cc
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/userobject-userobject.Tpo $(DEPDIR)/userobject-userobject.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='userobject.cc' object='userobject-userobject.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(userobject_CPPFLAGS) $(CPPFLAGS) $(userobject_CXXFLAGS) $(CXXFLAGS) -c -o userobject-userobject.o `test -f 'userobject.cc' || echo '$(srcdir)/'`userobject.cc
+
+userobject-userobject.obj: userobject.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(userobject_CPPFLAGS) $(CPPFLAGS) $(userobject_CXXFLAGS) $(CXXFLAGS) -MT userobject-userobject.obj -MD -MP -MF $(DEPDIR)/userobject-userobject.Tpo -c -o userobject-userobject.obj `if test -f 'userobject.cc'; then $(CYGPATH_W) 'userobject.cc'; else $(CYGPATH_W) '$(srcdir)/userobject.cc'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/userobject-userobject.Tpo $(DEPDIR)/userobject-userobject.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='userobject.cc' object='userobject-userobject.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(userobject_CPPFLAGS) $(CPPFLAGS) $(userobject_CXXFLAGS) $(CXXFLAGS) -c -o userobject-userobject.obj `if test -f 'userobject.cc'; then $(CYGPATH_W) 'userobject.cc'; else $(CYGPATH_W) '$(srcdir)/userobject.cc'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -14,40 +14,31 @@
     You should have received a copy of the GNU General Public License
     along with LibQtLua.  If not, see <http://www.gnu.org/licenses/>.
 
-    Copyright (C) 2008, Alexandre Becoulet <alexandre.becoulet@free.fr>
+    Copyright (C) 2009, Alexandre Becoulet <alexandre.becoulet@free.fr>
 
 */
 
-#ifndef QTLUAFUNCTION_HXX_
-#define QTLUAFUNCTION_HXX_
-
-#include "qtluauserdata.hxx"
-#include "qtluavalue.hxx"
+#ifndef QTLUA_ITEMSELECTIONMODEL_HXX_
+#define QTLUA_ITEMSELECTIONMODEL_HXX_
 
 namespace QtLua {
 
-template <class X>
-X Function::get_arg(const Value::List &args, int n, const X & default_)
-{
-  return n >= args.size() ? default_ : args[n];
-}
+  ItemSelectionModel::ItemSelectionModel(ItemModel *model)
+    : QItemSelectionModel(model)
+  {
+  }
 
-template <class X>
-X Function::get_arg(const Value::List &args, int n)
-{
-  if (n >= args.size())
-    throw String("Missing argument %, expected % type argument.").arg(n).arg(UserData::type_name<X>());
+  ItemSelectionModel::ItemSelectionModel(ItemModel *model, QObject *parent)
+    : QItemSelectionModel(model, parent)
+  {
+  }
 
-  return args[n];
-}
-
-template <class X>
-Ref<X> Function::get_arg_ud(const Value::List &args, int n)
-{
-  return get_arg<const Value &>(args, n).to_userdata_cast<X>();
-}
+  ItemSelectionModel::~ItemSelectionModel()
+  {
+  }
 
 }
 
 #endif
+
 

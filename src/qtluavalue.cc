@@ -49,8 +49,7 @@ int Value::empty_fcn(lua_State *st)
   return 0;
 }
 
-Value::Value(const State &ls, ValueType type)
-  : _st(ls._st)
+void Value::init_type_value(ValueType type)
 {
   lua_pushlightuserdata(_st, this);
 
@@ -184,6 +183,9 @@ Value::List Value::call (const List &args) const
     {
     case TFunction: {
       int oldtop = lua_gettop(_st);
+
+      if (!lua_checkstack(_st, args.size()))
+	throw String("Unable to extend lua stack to handle % arguments").arg(args.size());
 
       foreach(const Value &v, args)
 	v.push_value();
@@ -520,6 +522,31 @@ UserData::ptr Value::to_userdata_null() const
 
   lua_pop(_st, 1);
   return UserData::ptr();
+}
+
+static int lua_writer(lua_State *L, const void* p, size_t sz, void* pv)
+{
+  QByteArray *ba = (QByteArray*)pv;
+  ba->append((const char*)p, (int)sz);
+  return 0;
+}
+
+QByteArray Value::to_bytecode() const
+{
+  push_value();
+
+  if (lua_type(_st, -1) == LUA_TFUNCTION)
+    {
+      QByteArray bytecode;
+      int status = lua_dump(_st, &lua_writer, &bytecode);	
+      lua_pop(_st, 1);
+      if (status)
+	throw QtLua::String("Unable to dump function bytecode");
+      return bytecode;
+    }
+
+  convert_error(TUserData);
+  std::abort();
 }
 
 bool Value::operator==(const Value &lv) const

@@ -4,7 +4,8 @@ SUBDIRS = QtLua internal
 
 lib_LTLIBRARIES = libqtlua.la
 
-BUILT_SOURCES = QtLua/qtluaconsole.moc.cc QtLua/qtluaitemmodel.moc.cc QtLua/qtluastate.moc.cc qtluaqtlib.moc.cc
+BUILT_SOURCES = QtLua/qtluaconsole.moc.cc QtLua/qtluaitemselectionmodel.moc.cc \
+		QtLua/qtluaitemmodel.moc.cc QtLua/qtluastate.moc.cc qtluaqtlib.moc.cc
 
 libqtlua_la_SOURCES = $(BUILT_SOURCES) qtluaconsole.cc qtluaenum.cc		\
 	qtluafunction.cc qtluaitem.cc qtluaitemmodel.cc	qtlualistitem.cc	\
@@ -12,11 +13,11 @@ libqtlua_la_SOURCES = $(BUILT_SOURCES) qtluaconsole.cc qtluaenum.cc		\
 	qtluaplugin.cc qtluaqobjectwrapper.cc qtluaqtlib.cc qtluastate.cc	\
 	qtluatableiterator.cc qtluauserdata.cc qtluavalue.cc			\
 	qtluavalueref.cc qtluaqobjectiterator.cc qtluaenumiterator.cc		\
-	qtluaproperty.cc qtluaqmetaobjecttable.cc qtluaqmetaobjectwrapper.cc qtluaqtlib.hh
+	qtluaproperty.cc qtluaqmetaobjecttable.cc qtluaqmetaobjectwrapper.cc	\
+	qtluaitemselectionmodel.cc qtluaqtlib.hh
 
 libqtlua_la_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 libqtlua_la_CPPFLAGS = $(QT_CPPFLAGS) $(AM_CPPFLAGS)
-libqtlua_la_LDFLAGS  = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags) -version-info 1:0:0
+libqtlua_la_LDFLAGS  = $(QT_LDFLAGS) $(LDFLAGS) $(libtool_flags) -release 1.1
 libqtlua_la_LIBADD   = $(QT_LIBS) $(LIBADD)
-
 

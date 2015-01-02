@@ -1,8 +1,8 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'qtluaconsole.hh'
 **
-** Created: Sat May 16 16:11:02 2009
-**      by: The Qt Meta Object Compiler version 59 (Qt 4.3.3)
+** Created: Fri Jul 3 02:47:51 2009
+**      by: The Qt Meta Object Compiler version 61 (Qt 4.5.1)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -10,21 +10,23 @@
 #include "qtluaconsole.hh"
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'qtluaconsole.hh' doesn't include <QObject>."
-#elif Q_MOC_OUTPUT_REVISION != 59
-#error "This file was generated using the moc from 4.3.3. It"
+#elif Q_MOC_OUTPUT_REVISION != 61
+#error "This file was generated using the moc from 4.5.1. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
 
+QT_BEGIN_MOC_NAMESPACE
 static const uint qt_meta_data_QtLua__Console[] = {
 
  // content:
-       1,       // revision
+       2,       // revision
        0,       // classname
        0,    0, // classinfo
-       3,   10, // methods
+       3,   12, // methods
        0,    0, // properties
        0,    0, // enums/sets
+       0,    0, // constructors
 
  // signals: signature, parameters, type, tag, flags
       20,   16,   15,   15, 0x05,
@@ -57,7 +59,7 @@ void *QtLua::Console::qt_metacast(const char *_clname)
 {
     if (!_clname) return 0;
     if (!strcmp(_clname, qt_meta_stringdata_QtLua__Console))
-	return static_cast<void*>(const_cast< Console*>(this));
+        return static_cast<void*>(const_cast< Console*>(this));
     return QTextEdit::qt_metacast(_clname);
 }
 
@@ -71,6 +73,7 @@ int QtLua::Console::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         case 0: line_validate((*reinterpret_cast< const QString(*)>(_a[1]))); break;
         case 1: get_completion_list((*reinterpret_cast< const QString(*)>(_a[1])),(*reinterpret_cast< QStringList(*)>(_a[2])),(*reinterpret_cast< int(*)>(_a[3]))); break;
         case 2: print((*reinterpret_cast< const QString(*)>(_a[1]))); break;
+        default: ;
         }
         _id -= 3;
     }
@@ -90,3 +93,4 @@ void QtLua::Console::get_completion_list(const QString & _t1, QStringList & _t2,
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)), const_cast<void*>(reinterpret_cast<const void*>(&_t2)), const_cast<void*>(reinterpret_cast<const void*>(&_t3)) };
     QMetaObject::activate(this, &staticMetaObject, 1, _a);
 }
+QT_END_MOC_NAMESPACE

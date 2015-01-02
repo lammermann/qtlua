@@ -5,12 +5,14 @@ pkginclude_HEADERS = \
 	Console qtluaconsole.hh qtluaconsole.hxx \
 	Item qtluaitem.hh qtluaitem.hxx	\
 	ItemModel qtluaitemmodel.hh \
+	ItemSelectionModel qtluaitemselectionmodel.hh qtluaitemselectionmodel.hxx \
 	Iterator qtluaiterator.hh qtluaiterator.hxx \
 	ListItem qtlualistitem.hh qtlualistitem.hxx \
 	Plugin qtluaplugin.hh qtluaplugin.hxx \
 	PluginInterface qtluaplugininterface.hh \
 	State qtluastate.hh qtluastate.hxx \
 	UserData qtluauserdata.hh qtluauserdata.hxx \
+	UserObject qtluauserobject.hh qtluauserobject.hxx \
 	Value qtluavalue.hh qtluavalue.hxx \
 	ValueRef qtluavalueref.hh qtluavalueref.hxx \
 	Ref qtluaref.hh \

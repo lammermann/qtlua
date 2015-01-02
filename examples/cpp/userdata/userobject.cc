@@ -18,36 +18,45 @@
 
 */
 
-#ifndef QTLUAFUNCTION_HXX_
-#define QTLUAFUNCTION_HXX_
+#include <QtLua/UserObject>
 
-#include "qtluauserdata.hxx"
-#include "qtluavalue.hxx"
-
-namespace QtLua {
-
-template <class X>
-X Function::get_arg(const Value::List &args, int n, const X & default_)
+/* anchor 1 */
+class Test : public QtLua::UserObject<Test>
 {
-  return n >= args.size() ? default_ : args[n];
-}
+  QTLUA_PROPERTY(int, _value);
 
-template <class X>
-X Function::get_arg(const Value::List &args, int n)
+public:
+  Test(int value)
+    : _value(value)
+  {
+  }
+
+  static const member_s member_table[];
+};
+
+const Test::member_s Test::member_table[] = {
+  QTLUA_PROPERTY_ENTRY(Test, _value),
+};
+/* anchor end */
+
+#include <QtLua/State>
+#include <QtLua/Function>
+
+int main()
 {
-  if (n >= args.size())
-    throw String("Missing argument %, expected % type argument.").arg(n).arg(UserData::type_name<X>());
+  try {
 
-  return args[n];
+    QtLua::State state;
+    state.openlib(QtLua::QtLuaLib);
+
+    state["foo"] = QTLUA_REFNEW(Test, 21);
+    state["bar"] = QTLUA_REFNEW(Test, 42);
+
+    state.exec_statements("for key, value in each(foo) do print(key, value) end");
+  } catch (QtLua::String &e) {
+    std::cerr << e.constData() << std::endl;
+  }
+
+
+  return 0;
 }
-
-template <class X>
-Ref<X> Function::get_arg_ud(const Value::List &args, int n)
-{
-  return get_arg<const Value &>(args, n).to_userdata_cast<X>();
-}
-
-}
-
-#endif
-

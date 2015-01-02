@@ -127,11 +127,11 @@ int State::lua_cmd_plugin(lua_State *st)
 
     if (lua_gettop(st) < 1 || !lua_isstring(st, 1))
       {
-	this_->output("Usage: plugin(\"library_filename_without_ext\" [, load_as_table] )\n");
+	this_->output("Usage: plugin(\"library_filename_without_ext\")\n");
 	return 0;
       }
 
-    QTLUA_REFNEW(Plugin, lua_tostring(st, 1))->push_ud(st);
+    QTLUA_REFNEW(Plugin, String(lua_tostring(st, 1)) + Plugin::get_plugin_ext())->push_ud(st);
     return 1;
 
   } catch (String &e) {
@@ -314,7 +314,12 @@ int State::lua_meta_item_call(lua_State *st)
     for (int i = 2; i <= lua_gettop(st); i++)
       args.append(Value(st, i));
 
-    foreach(const Value &v, ud->meta_call(*get_this(st), args))
+    args = ud->meta_call(*get_this(st), args);
+
+    if (!lua_checkstack(st, args.size()))
+      throw String("Unable to extend lua stack to handle % return values").arg(args.size());
+
+    foreach(const Value &v, args)
       {
 	assert(v._st == st);
 	v.push_value();

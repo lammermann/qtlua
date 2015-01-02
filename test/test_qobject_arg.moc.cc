@@ -1,8 +1,8 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'test_qobject_arg.hh'
 **
-** Created: Sat May 16 16:11:04 2009
-**      by: The Qt Meta Object Compiler version 59 (Qt 4.3.3)
+** Created: Fri Jul 3 02:48:08 2009
+**      by: The Qt Meta Object Compiler version 61 (Qt 4.5.1)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -10,21 +10,23 @@
 #include "test_qobject_arg.hh"
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'test_qobject_arg.hh' doesn't include <QObject>."
-#elif Q_MOC_OUTPUT_REVISION != 59
-#error "This file was generated using the moc from 4.3.3. It"
+#elif Q_MOC_OUTPUT_REVISION != 61
+#error "This file was generated using the moc from 4.5.1. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
 
+QT_BEGIN_MOC_NAMESPACE
 static const uint qt_meta_data_MyObjectUD[] = {
 
  // content:
-       1,       // revision
+       2,       // revision
        0,       // classname
        0,    0, // classinfo
-       2,   10, // methods
+       2,   12, // methods
        0,    0, // properties
        0,    0, // enums/sets
+       0,    0, // constructors
 
  // signals: signature, parameters, type, tag, flags
       15,   12,   11,   11, 0x05,
@@ -54,7 +56,7 @@ void *MyObjectUD::qt_metacast(const char *_clname)
 {
     if (!_clname) return 0;
     if (!strcmp(_clname, qt_meta_stringdata_MyObjectUD))
-	return static_cast<void*>(const_cast< MyObjectUD*>(this));
+        return static_cast<void*>(const_cast< MyObjectUD*>(this));
     return QObject::qt_metacast(_clname);
 }
 
@@ -67,6 +69,7 @@ int MyObjectUD::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         switch (_id) {
         case 0: ud_arg((*reinterpret_cast< Ref<UserData>(*)>(_a[1]))); break;
         case 1: ud_slot((*reinterpret_cast< Ref<UserData>(*)>(_a[1]))); break;
+        default: ;
         }
         _id -= 2;
     }
@@ -82,12 +85,13 @@ void MyObjectUD::ud_arg(Ref<UserData> _t1)
 static const uint qt_meta_data_MyObjectQO[] = {
 
  // content:
-       1,       // revision
+       2,       // revision
        0,       // classname
        0,    0, // classinfo
-       2,   10, // methods
+       2,   12, // methods
        0,    0, // properties
        0,    0, // enums/sets
+       0,    0, // constructors
 
  // signals: signature, parameters, type, tag, flags
       14,   12,   11,   11, 0x05,
@@ -117,7 +121,7 @@ void *MyObjectQO::qt_metacast(const char *_clname)
 {
     if (!_clname) return 0;
     if (!strcmp(_clname, qt_meta_stringdata_MyObjectQO))
-	return static_cast<void*>(const_cast< MyObjectQO*>(this));
+        return static_cast<void*>(const_cast< MyObjectQO*>(this));
     return QObject::qt_metacast(_clname);
 }
 
@@ -130,6 +134,7 @@ int MyObjectQO::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         switch (_id) {
         case 0: qo_arg((*reinterpret_cast< QObject*(*)>(_a[1]))); break;
         case 1: qo_slot((*reinterpret_cast< QObject*(*)>(_a[1]))); break;
+        default: ;
         }
         _id -= 2;
     }
@@ -142,3 +147,4 @@ void MyObjectQO::qo_arg(QObject * _t1)
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);
 }
+QT_END_MOC_NAMESPACE

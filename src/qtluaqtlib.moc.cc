@@ -1,8 +1,8 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'qtluaqtlib.hh'
 **
-** Created: Sat May 16 16:11:02 2009
-**      by: The Qt Meta Object Compiler version 59 (Qt 4.3.3)
+** Created: Fri Jul 3 02:47:51 2009
+**      by: The Qt Meta Object Compiler version 61 (Qt 4.5.1)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -10,28 +10,30 @@
 #include "qtluaqtlib.hh"
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'qtluaqtlib.hh' doesn't include <QObject>."
-#elif Q_MOC_OUTPUT_REVISION != 59
-#error "This file was generated using the moc from 4.3.3. It"
+#elif Q_MOC_OUTPUT_REVISION != 61
+#error "This file was generated using the moc from 4.5.1. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
 
+QT_BEGIN_MOC_NAMESPACE
 static const uint qt_meta_data_QtLua__QFileDialog[] = {
 
  // content:
-       1,       // revision
+       2,       // revision
        0,       // classname
        0,    0, // classinfo
        0,    0, // methods
-       5,   10, // properties
+       5,   12, // properties
        0,    0, // enums/sets
+       0,    0, // constructors
 
  // properties: name, type, flags
       27,   19, 0x0a095103,
       49,   37, 0x0b095103,
       57,   37, 0x0b095001,
       71,   19, 0x0a095001,
-      90,   37, 0x0b095003,
+      90,   37, 0x0b095103,
 
        0        // eod
 };
@@ -56,7 +58,7 @@ void *QtLua::QFileDialog::qt_metacast(const char *_clname)
 {
     if (!_clname) return 0;
     if (!strcmp(_clname, qt_meta_stringdata_QtLua__QFileDialog))
-	return static_cast<void*>(const_cast< QFileDialog*>(this));
+        return static_cast<void*>(const_cast< QFileDialog*>(this));
     typedef ::QFileDialog QMocSuperClass;
     return QMocSuperClass::qt_metacast(_clname);
 }
@@ -75,8 +77,8 @@ int QtLua::QFileDialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         case 0: *reinterpret_cast< QString*>(_v) = get_directory(); break;
         case 1: *reinterpret_cast< QStringList*>(_v) = history(); break;
         case 2: *reinterpret_cast< QStringList*>(_v) = selectedFiles(); break;
-        case 3: *reinterpret_cast< QString*>(_v) = selectedFilter(); break;
-        case 4: *reinterpret_cast< QStringList*>(_v) = filters(); break;
+        case 3: *reinterpret_cast< QString*>(_v) = selectedNameFilter(); break;
+        case 4: *reinterpret_cast< QStringList*>(_v) = nameFilters(); break;
         }
         _id -= 5;
     } else if (_c == QMetaObject::WriteProperty) {
@@ -84,7 +86,7 @@ int QtLua::QFileDialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         switch (_id) {
         case 0: setDirectory(*reinterpret_cast< QString*>(_v)); break;
         case 1: setHistory(*reinterpret_cast< QStringList*>(_v)); break;
-        case 4: setFilters(*reinterpret_cast< QStringList*>(_v)); break;
+        case 4: setNameFilters(*reinterpret_cast< QStringList*>(_v)); break;
         }
         _id -= 5;
     } else if (_c == QMetaObject::ResetProperty) {
@@ -103,3 +105,4 @@ int QtLua::QFileDialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 #endif // QT_NO_PROPERTIES
     return _id;
 }
+QT_END_MOC_NAMESPACE
