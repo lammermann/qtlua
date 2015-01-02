@@ -28,6 +28,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QApplication>
+#include <QTranslator>
 
 #include <QMenu>
 #include <QMenuBar>
@@ -536,20 +537,25 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	QColor c = QColorDialog::getColor(Qt::white, QApplication::activeWindow());
+	QColor init(Qt::white);
 
-	return c.isValid() ? Value(ls, c.red()), Value(ls, c.green()), Value(ls, c.blue())
+	if (args.count() >= 3)
+	  init = QColor(get_arg<int>(args, 0, 0), get_arg<int>(args, 1, 0), get_arg<int>(args, 2, 0));
+
+	QColor c = QColorDialog::getColor(init, QApplication::activeWindow());
+
+	return c.isValid() ? Value::List(Value(ls, c.red()), Value(ls, c.green()), Value(ls, c.blue()))
 	                   : Value::List();
       }
 
       String get_description() const
       {
-	return "wrap QColorDialog::getColor function";
+	return "wrap QColorDialog::getColor function, returns rgb triplet in [0, 255] range";
       }
 
       String get_help() const
       {
-	return ("usage: qt.dialog.get_color()");
+	return ("usage: qt.dialog.get_color( [ init_red, init_green, init_blue ] )");
       }
 
     } dialog_get_color;
@@ -1006,22 +1012,59 @@ namespace QtLua {
     {
       Value::List meta_call(State &ls, const Value::List &args)
       {
-	return Value(ls, QObject::trUtf8(get_arg<String>(args, 0), 0, get_arg<int>(args, 1, -1)));
+	return Value(ls, QCoreApplication::translate(get_arg<String>(args, 0),
+						     get_arg<String>(args, 1),
+						     get_arg<String>(args, 2, ""),
+						     QCoreApplication::UnicodeUTF8,
+						     get_arg<int>(args, 3, -1)));
       }
 
       String get_description() const
       {
-	return "translate utf8 text";
+	return "Translate utf8 text using the QCoreApplication::translate function.";
       }
 
       String get_help() const
       {
-	return ("usage: qt.tr(\"text\" [ , n ])");
+	return ("usage: qt.tr(\"context\", \"text\", [ \"disambiguation\", n ])");
       }
 
     } qt_tr;
 
     qt_tr.register_(ls, "qt.tr");
+
+    //////////////////////////////////////////////////////////////////////
+
+    static class : public Function
+    {
+      Value::List meta_call(State &ls, const Value::List &args)
+      {
+	String filename(get_arg<String>(args, 0));
+	QTranslator *qtr = new QTranslator();
+
+	if (!qtr->load(filename))
+	  {
+	    delete qtr;
+	    throw String("Unable to load translation file `%'").arg(filename);
+	  }
+
+	QCoreApplication::installTranslator(qtr);
+	return Value(ls, qtr, true);
+      }
+
+      String get_description() const
+      {
+	return "Install a translation file and return associated QTranslator object.";
+      }
+
+      String get_help() const
+      {
+	return ("usage: qt.translator(\"filename\")");
+      }
+
+    } qt_translator;
+
+    qt_translator.register_(ls, "qt.translator");
 
   }
 
