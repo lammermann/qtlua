@@ -64,51 +64,38 @@ namespace QtLua {
 		  .arg(mm.methodSignature()));
 #endif
 
-    PoolArray<QMetaValue, 11> args;
-    void *qt_args[11];
-
-    // return value
-    if (*mm.typeName())
-      qt_args[0] = args.create(QMetaType::type(mm.typeName())).get_data();
-    else
-      qt_args[0] = 0;
-
-    int i = 1;
-
-    QList<QByteArray> pt = mm.parameterTypes();
-
-    if (pt.size() != lua_args.size() - 1)
-      QTLUA_THROW(QtLua::Method, "Wrong number of arguments for the `%' QMetaMethod.",
-#if QT_VERSION < 0x050000
-		 .arg(mm.signature()));
-#else
-		 .arg(mm.methodSignature()));
-#endif
-
-    // parameters
-    foreach (const QByteArray &pt, pt)
-      {
-	assert(i < 11);
-
-	//	if (i <= lua_args.size())
-	  qt_args[i] = args.create(QMetaType::type(pt.constData()), lua_args[i]).get_data();
-
-	  //	else
-	  //	  qt_args[i] = args.create(QMetaType::type(pt.constData())).get_data();
-	i++;
-      }
+    QList<QVariant> qml_args;
+    for (int i=1; i<10; i++)
+    {
+        if (i < lua_args.size())
+            qml_args << lua_args[i].to_qvariant();
+        else
+            qml_args << QVariant();
+    }
+    QVariant ret;
 
     // actual invocation
-    if (!obj.qt_metacall(QMetaObject::InvokeMetaMethod, _index, qt_args))
-      QTLUA_THROW(QtLua::Method, "Error on invocation of the `%' Qt method.",
-#if QT_VERSION < 0x050000
-		  .arg(mm.signature()));
-#else
-		  .arg(mm.methodSignature()));
-#endif
+    if (!mm.invoke(&obj,
+       Q_RETURN_ARG(QVariant, ret),
+       Q_ARG(QVariant, qml_args[0]),
+       Q_ARG(QVariant, qml_args[1]),
+       Q_ARG(QVariant, qml_args[2]),
+       Q_ARG(QVariant, qml_args[3]),
+       Q_ARG(QVariant, qml_args[4]),
+       Q_ARG(QVariant, qml_args[5]),
+       Q_ARG(QVariant, qml_args[6]),
+       Q_ARG(QVariant, qml_args[7]),
+       Q_ARG(QVariant, qml_args[8])
+       ))
+        QTLUA_THROW(QtLua::Method, "Error on invocation of the `%' Qt method.",
+  #if QT_VERSION < 0x050000
+          .arg(mm.signature()));
+  #else
+          .arg(mm.methodSignature()));
+  #endif
 
-    if (qt_args[0])
-      return args[0].to_value(ls);
+    if (!ret.isNull() && ret.isValid())
+      return Value::List(Value(ls, ret));
     else
       return Value::List();
   }
